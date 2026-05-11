@@ -84,15 +84,13 @@ export default function PatientProfilePage() {
         <div className="flex flex-col sm:flex-row sm:items-start gap-5">
           {/* Avatar */}
           <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold flex-shrink-0"
+            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black flex-shrink-0"
             style={{
-              background: patient.gender === 'Female'
-                ? 'rgba(236, 72, 153, 0.15)'
-                : 'rgba(59, 130, 246, 0.15)',
-              color: patient.gender === 'Female' ? '#ec4899' : '#3b82f6',
+              background: patient.gender === 'Female' ? '#fce7f3' : '#e0f2fe',
+              color: patient.gender === 'Female' ? '#db2777' : '#0284c7',
             }}
           >
-            {patient.full_name.charAt(0)}
+            {patient.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
           </div>
 
           {/* Details */}
@@ -144,7 +142,7 @@ export default function PatientProfilePage() {
             </div>
             <div className="flex flex-wrap gap-2">
               {patient.chronic_conditions.map((c) => (
-                <span key={c} className="badge badge-warning">{c}</span>
+                <span key={c} className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold border border-red-100 shadow-sm">{c}</span>
               ))}
             </div>
           </div>

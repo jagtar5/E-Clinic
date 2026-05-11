@@ -157,24 +157,23 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-min mt-6">
+        
+        {/* Quick Stats Grid */}
         <StatCard icon={Users} label="Total Patients" value={stats.totalPatients} color="#3b82f6" />
         <StatCard icon={Stethoscope} label="Total Encounters" value={stats.totalEncounters} color="#10b981" />
         <StatCard icon={Receipt} label="Collected Revenue" value={`Rs. ${stats.revenue.toLocaleString()}`} color="#f59e0b" />
         <StatCard icon={Activity} label="Pending Dues" value={`Rs. ${stats.pending.toLocaleString()}`} color="#ef4444" />
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         {/* Most Prescribed Medicines */}
-        <div className="card p-6 flex flex-col">
+        <div className="card p-6 flex flex-col lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <Pill className="w-5 h-5 text-blue-500" />
               Top Prescribed Medicines
             </h2>
-            <button className="text-xs text-blue-400 hover:text-blue-300 font-medium" onClick={() => setDetailModal('medicines')}>View All</button>
+            <button className="text-xs text-blue-500 hover:text-blue-600 font-semibold" onClick={() => setDetailModal('medicines')}>View All</button>
           </div>
           <div className="space-y-4 flex-grow">
             {stats.allMedicines.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
@@ -185,14 +184,27 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Patient Demographics - Tall Card */}
+        <div className="card p-6 lg:col-span-2 lg:row-span-2 flex flex-col bg-gradient-to-br from-pink-50 to-white">
+          <h2 className="text-lg font-bold flex items-center gap-2 mb-8">
+            <PieChart className="w-5 h-5 text-pink-500" />
+            Patient Demographics
+          </h2>
+          <div className="flex-1 flex flex-col justify-center space-y-6">
+            <DemographicBar label="Male" count={stats.demographics.males} total={stats.totalPatients} color="#3b82f6" />
+            <DemographicBar label="Female" count={stats.demographics.females} total={stats.totalPatients} color="#ec4899" />
+            <DemographicBar label="Other" count={stats.demographics.other} total={stats.totalPatients} color="#8b5cf6" />
+          </div>
+        </div>
+
         {/* Most Common Diagnoses */}
-        <div className="card p-6 flex flex-col">
+        <div className="card p-6 flex flex-col lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <Stethoscope className="w-5 h-5 text-green-500" />
               Most Common Diagnoses
             </h2>
-            <button className="text-xs text-green-400 hover:text-green-300 font-medium" onClick={() => setDetailModal('diagnoses')}>View All</button>
+            <button className="text-xs text-green-500 hover:text-green-600 font-semibold" onClick={() => setDetailModal('diagnoses')}>View All</button>
           </div>
           <div className="space-y-4 flex-grow">
             {stats.allDiagnoses.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
@@ -204,13 +216,13 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Most Common Symptoms */}
-        <div className="card p-6 flex flex-col">
+        <div className="card p-6 flex flex-col lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <Thermometer className="w-5 h-5 text-amber-500" />
               Top Reported Symptoms
             </h2>
-            <button className="text-xs text-amber-400 hover:text-amber-300 font-medium" onClick={() => setDetailModal('symptoms')}>View All</button>
+            <button className="text-xs text-amber-500 hover:text-amber-600 font-semibold" onClick={() => setDetailModal('symptoms')}>View All</button>
           </div>
           <div className="space-y-4 flex-grow">
             {stats.allSymptoms.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
@@ -222,13 +234,13 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Most Prescribed Lab Tests */}
-        <div className="card p-6 flex flex-col">
+        <div className="card p-6 flex flex-col lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <FlaskConical className="w-5 h-5 text-purple-500" />
               Top Advised Lab Tests
             </h2>
-            <button className="text-xs text-purple-400 hover:text-purple-300 font-medium" onClick={() => setDetailModal('tests')}>View All</button>
+            <button className="text-xs text-purple-500 hover:text-purple-600 font-semibold" onClick={() => setDetailModal('tests')}>View All</button>
           </div>
           <div className="space-y-4 flex-grow">
             {stats.allTests.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
@@ -236,19 +248,6 @@ export default function AnalyticsPage() {
                 <ProgressBar key={i} label={item.name} count={item.count} max={stats.allTests[0].count} color="#8b5cf6" />
               ))
             }
-          </div>
-        </div>
-
-        {/* Patient Demographics */}
-        <div className="card p-6 lg:col-span-2">
-          <h2 className="text-lg font-semibold flex items-center gap-2 mb-6">
-            <PieChart className="w-5 h-5 text-pink-500" />
-            Patient Demographics
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <DemographicBar label="Male" count={stats.demographics.males} total={stats.totalPatients} color="#3b82f6" />
-            <DemographicBar label="Female" count={stats.demographics.females} total={stats.totalPatients} color="#ec4899" />
-            <DemographicBar label="Other" count={stats.demographics.other} total={stats.totalPatients} color="#8b5cf6" />
           </div>
         </div>
 

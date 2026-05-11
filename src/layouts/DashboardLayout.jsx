@@ -235,11 +235,7 @@ export default function DashboardLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
         <header
-          className="flex items-center h-16 px-4 lg:px-6 flex-shrink-0 gap-4"
-          style={{
-            background: 'var(--color-bg-secondary)',
-            borderBottom: '1px solid var(--color-border-default)',
-          }}
+          className="flex items-center h-16 px-4 lg:px-6 flex-shrink-0 gap-4 z-10 glass-strong relative"
         >
           <button
             className="btn-ghost p-2 lg:hidden"

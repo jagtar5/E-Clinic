@@ -111,95 +111,103 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={i}
-              className="card p-5 animate-slide-up"
-              style={{ animationDelay: `${i * 0.05}s` }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: `${stat.color}15`, color: stat.color }}
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-(--color-text-muted)">{stat.change}</span>
-              </div>
-              <div className="text-2xl font-bold text-(--color-text-primary)">{stat.value}</div>
-              <div className="text-sm text-(--color-text-muted) mt-1">{stat.label}</div>
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-min">
+        
+        {/* Featured Stat - Today's Visits (Bento Tile) */}
+        <div className="card p-6 lg:col-span-2 bg-gradient-to-br from-blue-500 to-sky-400 text-white border-none shadow-blue-500/20 flex flex-col justify-between hover:shadow-blue-500/30">
+          <div className="flex items-start justify-between mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+              <CalendarClock className="w-6 h-6 text-white" />
             </div>
-          );
-        })}
-      </div>
+            <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">So far today</span>
+          </div>
+          <div>
+            <div className="text-4xl font-black mb-1">{stats[2].value}</div>
+            <div className="text-lg font-medium text-white/90">Today's Visits</div>
+          </div>
+        </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Encounters */}
-        <div className="lg:col-span-2 card p-0 overflow-hidden">
-          <div className="flex items-center justify-between p-5 pb-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+        {/* Small Stats */}
+        <div className="card p-5 flex flex-col justify-between">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-50 text-indigo-500">
+              <Users className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-semibold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-full">{stats[0].change}</span>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-(--color-text-primary)">{stats[0].value}</div>
+            <div className="text-sm font-medium text-(--color-text-secondary)">Total Patients</div>
+          </div>
+        </div>
+
+        <div className="card p-5 flex flex-col justify-between">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-500">
+              <Stethoscope className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-semibold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full">{stats[1].change}</span>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-(--color-text-primary)">{stats[1].value}</div>
+            <div className="text-sm font-medium text-(--color-text-secondary)">Total Encounters</div>
+          </div>
+        </div>
+
+        {/* Recent Encounters - Spans 3 columns */}
+        <div className="lg:col-span-3 card p-0 overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-5 pb-3 border-b border-(--color-border-subtle) bg-(--color-bg-primary)/50">
+            <h2 className="text-base font-bold flex items-center gap-2">
               <Activity className="w-5 h-5 text-(--color-accent-primary)" />
               Recent Encounters
             </h2>
-            <button
-              className="btn-ghost text-xs"
-              onClick={() => navigate('/dashboard/encounters')}
-            >
+            <button className="btn-ghost text-xs" onClick={() => navigate('/dashboard/encounters')}>
               View All
             </button>
           </div>
 
           {recentEncounters.length === 0 ? (
-            <div className="p-8 text-center text-(--color-text-muted) text-sm">
+            <div className="p-8 flex-1 flex items-center justify-center text-center text-(--color-text-muted) text-sm bg-(--color-bg-card)">
               No encounters yet. Start a new encounter to see activity here.
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto bg-(--color-bg-card)">
               <table className="w-full">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--color-border-default)' }}>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">Patient</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">Diagnosis</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">Time</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">Rx</th>
+                  <tr className="bg-(--color-bg-primary)/30">
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Patient</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Diagnosis</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Time</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Rx</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-(--color-border-subtle)">
                   {recentEncounters.map((enc, i) => (
                     <tr
                       key={enc.id}
                       className="transition-colors hover:bg-(--color-bg-hover) cursor-pointer"
-                      style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
                       onClick={() => navigate(`/dashboard/encounters/${enc.id}`)}
                     >
-                      <td className="px-5 py-3.5">
-                        <span className="font-medium text-sm">{enc.patient_name}</span>
+                      <td className="px-5 py-3">
+                        <span className="font-semibold text-sm text-(--color-text-primary)">{enc.patient_name}</span>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3">
                         {enc.diagnoses?.length > 0 ? (
-                          <span className="badge badge-info text-[0.625rem]">
-                            {enc.diagnoses[0].code}
-                          </span>
+                          <span className="badge badge-info">{enc.diagnoses[0].code}</span>
                         ) : (
                           <span className="text-xs text-(--color-text-muted)">—</span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5 text-sm text-(--color-text-muted)">
-                        <span className="flex items-center gap-1">
+                      <td className="px-5 py-3 text-sm text-(--color-text-muted) font-medium">
+                        <span className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
                           {timeAgo(enc.created_at)}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3">
                         {enc.prescriptions?.length > 0 ? (
-                          <span className="badge badge-success text-[0.625rem]">
-                            {enc.prescriptions.length}
-                          </span>
+                          <span className="badge badge-success">{enc.prescriptions.length}</span>
                         ) : (
                           <span className="text-xs text-(--color-text-muted)">—</span>
                         )}
@@ -213,41 +221,39 @@ export default function DashboardHome() {
         </div>
 
         {/* Recent Patients */}
-        <div className="card p-5">
-          <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-(--color-accent-secondary)" />
+        <div className="card p-5 lg:col-span-1 flex flex-col">
+          <h2 className="text-base font-bold flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-pink-500" />
             Recent Patients
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-3 flex-1">
             {recentPatients.map((patient) => (
               <div
                 key={patient.id}
-                className="flex items-center gap-3 p-3 rounded-xl transition-colors hover:bg-(--color-bg-hover) cursor-pointer"
-                style={{ background: 'var(--color-bg-input)', border: '1px solid var(--color-border-subtle)' }}
+                className="flex items-center gap-3 p-2.5 rounded-xl transition-all hover:bg-(--color-bg-hover) hover:scale-[1.02] cursor-pointer border border-transparent hover:border-(--color-border-default)"
                 onClick={() => navigate(`/dashboard/patients/${patient.id}`)}
               >
                 <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
                   style={{
-                    background: patient.gender === 'Female' ? 'rgba(236,72,153,0.15)' : 'rgba(59,130,246,0.15)',
-                    color: patient.gender === 'Female' ? '#ec4899' : '#3b82f6',
+                    background: patient.gender === 'Female' ? '#fce7f3' : '#e0f2fe',
+                    color: patient.gender === 'Female' ? '#db2777' : '#0284c7',
                   }}
                 >
-                  {patient.full_name.charAt(0)}
+                  {patient.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{patient.full_name}</div>
-                  <div className="text-xs text-(--color-text-muted)">{patient.age}y / {patient.gender}</div>
+                  <div className="text-sm font-semibold truncate text-(--color-text-primary)">{patient.full_name}</div>
+                  <div className="text-xs font-medium text-(--color-text-secondary)">{patient.age}y / {patient.gender}</div>
                 </div>
-                <ChevronRightIcon />
               </div>
             ))}
           </div>
           <button
-            className="btn-secondary w-full mt-4 justify-center text-xs"
+            className="btn-secondary w-full mt-4 justify-center"
             onClick={() => navigate('/dashboard/patients')}
           >
-            View All Patients
+            All Patients
           </button>
         </div>
       </div>

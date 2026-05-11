@@ -588,18 +588,18 @@ export default function NewEncounterPage() {
           </Section>
 
           {/* Vitals & Complaints */}
-          <Section card={true}>
-            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <Heart className="w-5 h-5 text-red-500" /> Vitals & Complaints
+          <Section card={true} className="bg-sky-50/40 border-sky-100/50">
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2 text-sky-700">
+              <Heart className="w-5 h-5 text-sky-500" /> Vitals & Complaints
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
               <VitalInput label="Pulse" value={form.pulse} onChange={(v) => updateForm('pulse', v)} placeholder="72" />
               <div>
                 <label className="label">BP (Sys/Dia)</label>
-                <div className="flex items-center gap-1">
-                  <input className="input text-center px-1" placeholder="120" value={form.bp_systolic} onChange={(e) => updateForm('bp_systolic', e.target.value)} />
-                  <span>/</span>
-                  <input className="input text-center px-1" placeholder="80" value={form.bp_diastolic} onChange={(e) => updateForm('bp_diastolic', e.target.value)} />
+                <div className="flex items-center gap-1 bg-white rounded-md px-1 border border-transparent hover:border-slate-200 focus-within:border-sky-400 focus-within:bg-white transition-all">
+                  <input className="input-inline text-center px-1" placeholder="120" value={form.bp_systolic} onChange={(e) => updateForm('bp_systolic', e.target.value)} />
+                  <span className="text-slate-400">/</span>
+                  <input className="input-inline text-center px-1" placeholder="80" value={form.bp_diastolic} onChange={(e) => updateForm('bp_diastolic', e.target.value)} />
                 </div>
               </div>
               <VitalInput label="Temp (°F)" value={form.temperature} onChange={(v) => updateForm('temperature', v)} placeholder="98.6" />
@@ -613,15 +613,15 @@ export default function NewEncounterPage() {
               </div>
               <div>
                 <label className="label">Chief Complaints</label>
-                <textarea className="input" style={{ minHeight: '60px' }} placeholder="Describe complaints..." value={form.complaints} onChange={(e) => updateForm('complaints', e.target.value)} />
+                <textarea className="input-inline bg-white border border-transparent hover:border-slate-200" style={{ minHeight: '60px' }} placeholder="Describe complaints..." value={form.complaints} onChange={(e) => updateForm('complaints', e.target.value)} />
               </div>
             </div>
           </Section>
 
           {/* Diagnosis */}
-          <Section card={true}>
-            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <Stethoscope className="w-5 h-5 text-green-500" /> Diagnosis
+          <Section card={true} className="bg-emerald-50/40 border-emerald-100/50">
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2 text-emerald-700">
+              <Stethoscope className="w-5 h-5 text-emerald-500" /> Diagnosis
             </h2>
             <div className="space-y-4">
               <div>
@@ -632,40 +632,40 @@ export default function NewEncounterPage() {
               </div>
               <div>
                 <label className="label">Clinical Notes</label>
-                <textarea className="input" style={{ minHeight: '80px' }} placeholder="Private clinical notes..." value={form.clinical_notes} onChange={(e) => updateForm('clinical_notes', e.target.value)} />
+                <textarea className="input-inline bg-white border border-transparent hover:border-slate-200" style={{ minHeight: '80px' }} placeholder="Private clinical notes..." value={form.clinical_notes} onChange={(e) => updateForm('clinical_notes', e.target.value)} />
               </div>
             </div>
           </Section>
 
           {/* Prescription */}
-          <Section card={true} id="prescription">
-            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <Pill className="w-5 h-5 text-blue-500" /> Prescription
+          <Section card={true} id="prescription" className="bg-indigo-50/40 border-indigo-100/50">
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2 text-indigo-700">
+              <Pill className="w-5 h-5 text-indigo-500" /> Prescription
             </h2>
             <div className="space-y-4">
               {form.prescriptions.map((rx, index) => (
-                <div key={index} className="p-4 rounded-xl border border-(--color-border-default) bg-(--color-bg-input)">
+                <div key={index} className="p-4 rounded-xl border border-indigo-100 bg-white/60 hover:bg-white transition-colors group">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="font-medium text-sm">Medicine #{index + 1}</span>
-                    <button className="text-red-500 hover:text-red-600 p-1" onClick={() => removePrescription(index)}><Trash2 className="w-4 h-4" /></button>
+                    <span className="font-medium text-sm text-indigo-800">Medicine #{index + 1}</span>
+                    <button className="text-red-400 hover:text-red-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removePrescription(index)}><Trash2 className="w-4 h-4" /></button>
                   </div>
                   <SearchableCombobox className="mb-3" items={medicines} value={rx.medicine} onChange={(v) => updatePrescription(index, 'medicine', v)} placeholder="Search medicine..." renderItem={(item) => (
                     <div className="flex-1"><div className="font-medium">{item.name}</div><div className="text-xs text-(--color-text-muted)">{item.formulation}</div></div>
                   )} />
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div><label className="label text-[10px]">Dosage</label><input className="input text-sm" placeholder="1 tab" value={rx.dosage} onChange={(e) => updatePrescription(index, 'dosage', e.target.value)} /></div>
-                    <div>
-                      <label className="label text-[10px]">Freq</label>
-                      <select className="input text-sm px-1" value={rx.frequency} onChange={(e) => updatePrescription(index, 'frequency', e.target.value)}>
+                    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300"><label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Dosage</label><input className="input-inline text-sm px-2 pb-1 pt-0" placeholder="1 tab" value={rx.dosage} onChange={(e) => updatePrescription(index, 'dosage', e.target.value)} /></div>
+                    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300">
+                      <label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Freq</label>
+                      <select className="input-inline text-sm px-1 pb-1 pt-0 appearance-none bg-transparent" value={rx.frequency} onChange={(e) => updatePrescription(index, 'frequency', e.target.value)}>
                         <option value="">Select</option><option value="OD">OD</option><option value="BD">BD</option><option value="TDS">TDS</option><option value="QID">QID</option><option value="SOS">SOS</option>
                       </select>
                     </div>
-                    <div><label className="label text-[10px]">Duration</label><input className="input text-sm" placeholder="5 days" value={rx.duration} onChange={(e) => updatePrescription(index, 'duration', e.target.value)} /></div>
-                    <div><label className="label text-[10px]">Notes</label><input className="input text-sm" placeholder="After meal" value={rx.instructions} onChange={(e) => updatePrescription(index, 'instructions', e.target.value)} /></div>
+                    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300"><label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Duration</label><input className="input-inline text-sm px-2 pb-1 pt-0" placeholder="5 days" value={rx.duration} onChange={(e) => updatePrescription(index, 'duration', e.target.value)} /></div>
+                    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300"><label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Notes</label><input className="input-inline text-sm px-2 pb-1 pt-0" placeholder="After meal" value={rx.instructions} onChange={(e) => updatePrescription(index, 'instructions', e.target.value)} /></div>
                   </div>
                 </div>
               ))}
-              <button className="btn-secondary w-full justify-center border-dashed" onClick={addPrescription}>
+              <button className="btn-ghost w-full justify-center border border-dashed border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700" onClick={addPrescription}>
                 <Plus className="w-4 h-4" /> Add Medicine
               </button>
             </div>
@@ -709,9 +709,9 @@ export default function NewEncounterPage() {
   );
 }
 
-function Section({ card, children, id }) {
+function Section({ card, children, id, className = '' }) {
   return (
-    <div id={id} className={card ? 'card p-5' : ''}>
+    <div id={id} className={`${card ? 'card p-5' : ''} ${className}`}>
       {children}
     </div>
   );
@@ -719,9 +719,9 @@ function Section({ card, children, id }) {
 
 function VitalInput({ label, value, onChange, placeholder }) {
   return (
-    <div>
-      <label className="label">{label}</label>
-      <input className="input text-center" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-sky-400 transition-all">
+      <label className="label px-2 pt-1 text-sky-600/70 mb-0">{label}</label>
+      <input className="input-inline text-center pb-1 pt-0 font-medium" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }

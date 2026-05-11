@@ -113,12 +113,12 @@ export default function DashboardHome() {
 
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-min">
-        
+
         {/* Featured Stat - Today's Visits (Bento Tile) */}
-        <div className="card p-6 lg:col-span-2 bg-gradient-to-br from-blue-500 to-sky-400 text-white border-none shadow-blue-500/20 flex flex-col justify-between hover:shadow-blue-500/30">
+        <div className="card p-6 lg:col-span-2 bg-gradient-to-br from-blue-500 to-sky-400 text-black border-none shadow-blue-500/20 flex flex-col justify-between hover:shadow-blue-500/30">
           <div className="flex items-start justify-between mb-8">
             <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-              <CalendarClock className="w-6 h-6 text-white" />
+              <CalendarClock className="w-6 h-6 text-black" />
             </div>
             <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">So far today</span>
           </div>

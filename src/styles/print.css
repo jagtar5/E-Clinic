@@ -1,0 +1,283 @@
+/* ===== Prescription Print Styles ===== */
+/* Designed for single A4 page output */
+
+/* Screen preview styling */
+.rx-page {
+  max-width: 210mm;
+  margin: 0 auto;
+  background: white;
+  color: #111;
+  padding: 20mm 15mm;
+  border-radius: 8px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.rx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.rx-header-left {
+  flex: 1;
+}
+
+.rx-header-right {
+  text-align: right;
+}
+
+.rx-clinic-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a365d;
+  letter-spacing: -0.02em;
+}
+
+.rx-clinic-detail {
+  font-size: 10px;
+  color: #555;
+  margin-top: 1px;
+}
+
+.rx-doctor-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a365d;
+}
+
+.rx-doctor-detail {
+  font-size: 10px;
+  color: #555;
+  margin-top: 1px;
+}
+
+.rx-divider {
+  border: none;
+  border-top: 2px solid #1a365d;
+  margin: 8px 0;
+}
+
+.rx-patient-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  padding: 6px 0;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.rx-patient-item {
+  white-space: nowrap;
+}
+
+.rx-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.rx-section {
+  margin-bottom: 8px;
+}
+
+.rx-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a365d;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.rx-rx-title {
+  font-size: 13px;
+  color: #1a365d;
+  border-bottom: 2px solid #1a365d;
+}
+
+.rx-text {
+  font-size: 11px;
+  color: #333;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+.rx-vitals-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 11px;
+  color: #444;
+  padding: 4px 0;
+  background: #f8f9fa;
+  padding: 5px 8px;
+  border-radius: 3px;
+}
+
+.rx-vitals-row strong {
+  color: #111;
+}
+
+/* Prescription Table */
+.rx-prescription-section {
+  margin-top: 8px;
+  flex-grow: 1;
+}
+
+.rx-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.rx-table th {
+  background: #f0f4f8;
+  padding: 5px 6px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555;
+  border-bottom: 1.5px solid #ccc;
+}
+
+.rx-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+.rx-table tr:last-child td {
+  border-bottom: none;
+}
+
+.rx-medicine-name {
+  font-weight: 600;
+  color: #111;
+}
+
+/* Footer */
+.rx-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+  padding-top: 16px;
+  min-height: 60px;
+}
+
+.rx-follow-up {
+  font-size: 11px;
+  color: #555;
+}
+
+.rx-footer-right {
+  text-align: center;
+}
+
+.rx-signature-line {
+  width: 150px;
+  border-bottom: 1px solid #333;
+  margin-bottom: 4px;
+}
+
+.rx-signature-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+}
+
+.rx-signature-sub {
+  font-size: 9px;
+  color: #888;
+}
+
+/* ===== PRINT MEDIA QUERY ===== */
+@media print {
+  /* Hide everything except prescription */
+  body * {
+    visibility: hidden;
+  }
+
+  #prescription-print,
+  #prescription-print * {
+    visibility: visible;
+  }
+
+  #prescription-print {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 12mm 15mm;
+    box-shadow: none;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 10.5px;
+  }
+
+  /* Ensure single page */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .rx-header {
+    margin-bottom: 6px;
+  }
+
+  .rx-divider {
+    margin: 6px 0;
+  }
+
+  .rx-section {
+    margin-bottom: 6px;
+  }
+
+  .rx-patient-row {
+    margin-bottom: 4px;
+    padding: 4px 0;
+  }
+
+  .rx-prescription-section {
+    flex-grow: 1;
+  }
+
+  .rx-footer {
+    margin-top: auto;
+    padding-top: 10px;
+  }
+
+  .rx-table th {
+    padding: 4px 5px;
+  }
+
+  .rx-table td {
+    padding: 4px 5px;
+  }
+
+  /* Prevent page breaks */
+  .rx-page * {
+    page-break-inside: avoid;
+  }
+}

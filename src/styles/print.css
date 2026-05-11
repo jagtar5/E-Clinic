@@ -202,17 +202,24 @@
 
 /* ===== PRINT MEDIA QUERY ===== */
 @media print {
-  /* Hide everything except prescription */
+  /* Hide everything except print areas */
   body * {
     visibility: hidden;
   }
 
-  #prescription-print,
-  #prescription-print * {
+  /* Handle Prescription Print */
+  body.print-mode-rx #prescription-print,
+  body.print-mode-rx #prescription-print * {
     visibility: visible;
   }
 
-  #prescription-print {
+  /* Handle Lab Print */
+  body.print-mode-lab #lab-slip-print,
+  body.print-mode-lab #lab-slip-print * {
+    visibility: visible;
+  }
+
+  #prescription-print, #lab-slip-print {
     position: fixed;
     left: 0;
     top: 0;

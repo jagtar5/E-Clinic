@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import db from '../../lib/store';
 import MasterDataTable from '../../components/MasterDataTable';
 import {
@@ -7,6 +7,8 @@ import {
   Thermometer,
   FlaskConical,
   Stethoscope,
+  Upload,
+  AlertCircle,
 } from 'lucide-react';
 
 const TABS = [
@@ -51,6 +53,7 @@ const COLUMN_DEFS = {
 export default function MasterDataPage() {
   const [activeTab, setActiveTab] = useState('medicines');
   const [refreshKey, setRefreshKey] = useState(0);
+  const fileInputRef = useRef(null);
 
   const data = useMemo(() => {
     const result = db.select(activeTab, {
@@ -77,19 +80,95 @@ export default function MasterDataPage() {
     refresh();
   }
 
+  function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      if (lines.length < 2) {
+        alert('Invalid CSV: Need at least a header row and one data row.');
+        return;
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const expectedKeys = COLUMN_DEFS[activeTab].map(c => c.key);
+      
+      const missing = expectedKeys.filter(k => !headers.includes(k));
+      if (missing.length > 0) {
+        alert(`Invalid CSV. Missing required headers for ${activeTab}:\n${missing.join(', ')}`);
+        return;
+      }
+
+      const newRecords = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        const record = {};
+        headers.forEach((h, idx) => {
+          if (expectedKeys.includes(h)) {
+            record[h] = values[idx] || '';
+          }
+        });
+        if (Object.values(record).some(v => v !== '')) {
+          newRecords.push(record);
+        }
+      }
+
+      if (newRecords.length > 0) {
+        db.bulkInsert(activeTab, newRecords);
+        alert(`Successfully imported ${newRecords.length} records!`);
+        refresh();
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = null; // reset input
+  }
+
   const activeTabDef = TABS.find((t) => t.id === activeTab);
+  const expectedHeaders = COLUMN_DEFS[activeTab].map(c => c.key).join(', ');
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-3">
-          <Database className="w-7 h-7 text-(--color-accent-warning)" />
-          Master Data
-        </h1>
-        <p className="text-(--color-text-secondary) mt-1">
-          Manage medicines, symptoms, lab tests, and diagnostic codes
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-3">
+            <Database className="w-7 h-7 text-(--color-accent-warning)" />
+            Master Data
+          </h1>
+          <p className="text-(--color-text-secondary) mt-1">
+            Manage medicines, symptoms, lab tests, and diagnostic codes
+          </p>
+        </div>
+        <div className="flex flex-col sm:items-end">
+          <input
+            type="file"
+            accept=".csv"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+          />
+          <button className="btn-secondary" onClick={() => fileInputRef.current.click()}>
+            <Upload className="w-4 h-4" /> Import CSV
+          </button>
+        </div>
+      </div>
+      
+      {/* CSV Requirements Banner */}
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <h3 className="text-sm font-semibold text-blue-400 mb-1">CSV Import Requirements</h3>
+          <p className="text-xs text-(--color-text-secondary)">
+            Ensure your CSV file contains exactly these column headers (lowercase) in the first row for the <strong>{activeTabDef?.label}</strong> tab:
+            <br />
+            <span className="inline-block mt-1.5 font-mono text-blue-300 bg-blue-500/10 px-2 py-1 rounded">
+              {expectedHeaders}
+            </span>
+          </p>
+        </div>
       </div>
 
       {/* Tabs */}

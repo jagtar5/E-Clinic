@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import db from '../../lib/store';
 import {
@@ -16,7 +16,9 @@ import {
   AlertCircle,
   FileText,
   Printer,
+  Edit,
 } from 'lucide-react';
+import '../../styles/print.css';
 
 export default function EncounterDetailPage() {
   const { encounterId } = useParams();
@@ -25,6 +27,19 @@ export default function EncounterDetailPage() {
   const encounter = useMemo(() => {
     return db.findById('encounters', encounterId);
   }, [encounterId]);
+
+  const patient = useMemo(() => {
+    if (!encounter) return null;
+    return db.findById('patients', encounter.patient_id);
+  }, [encounter]);
+
+  // Clean up print classes
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('print-mode-rx');
+      document.body.classList.remove('print-mode-lab');
+    };
+  }, []);
 
   if (!encounter) {
     return (
@@ -41,11 +56,24 @@ export default function EncounterDetailPage() {
   }
 
   const date = new Date(encounter.created_at);
+  const formattedDate = date.toLocaleDateString('en-PK', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
+
+  function handlePrintRx() {
+    navigate(`/dashboard/prescriptions/${encounterId}`);
+  }
+
+  function handlePrintLab() {
+    document.body.classList.remove('print-mode-rx');
+    document.body.classList.add('print-mode-lab');
+    window.print();
+  }
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button className="btn-ghost" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-4 h-4" />
@@ -62,22 +90,73 @@ export default function EncounterDetailPage() {
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
-                {date.toLocaleDateString('en-PK', { year: 'numeric', month: 'long', day: 'numeric' })}
+                {formattedDate}
                 {' at '}
                 {date.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           </div>
         </div>
-        <button
-          className="btn-primary"
-          onClick={() => navigate(`/dashboard/prescriptions/${encounterId}`)}
-        >
-          <Printer className="w-4 h-4" /> Print Rx
-        </button>
+        <div className="flex items-center gap-2">
+          <button className="btn-secondary" onClick={() => navigate(`/dashboard/encounters/edit/${encounterId}`)}>
+            <Edit className="w-4 h-4" /> Edit
+          </button>
+          <button className="btn-secondary" onClick={handlePrintLab} disabled={!encounter.lab_tests?.length && !encounter.xray_notes}>
+            <FlaskConical className="w-4 h-4" /> Print Lab Slip
+          </button>
+          <button className="btn-primary" onClick={handlePrintRx}>
+            <Printer className="w-4 h-4" /> Print Rx
+          </button>
+        </div>
       </div>
 
-      {/* Vitals */}
+      {/* Lab Slip Print Layout (Hidden on screen) */}
+      <div className="rx-page hidden" id="lab-slip-print">
+        <div className="rx-header">
+          <div className="rx-header-left">
+            <div className="rx-clinic-name">E-Clinic Medical Center</div>
+            <div className="rx-clinic-detail">123 Medical Road, Islamabad</div>
+          </div>
+          <div className="rx-header-right">
+            <div className="rx-doctor-name">Dr. Ahmed Khan</div>
+            <div className="rx-doctor-detail">MBBS, FCPS</div>
+          </div>
+        </div>
+        <div className="rx-divider"></div>
+        {patient && (
+          <div className="rx-patient-row">
+            <div className="rx-patient-item"><span className="rx-label">Patient:</span> {patient.full_name}</div>
+            <div className="rx-patient-item"><span className="rx-label">Age/Sex:</span> {patient.age}y / {patient.gender}</div>
+            <div className="rx-patient-item"><span className="rx-label">Date:</span> {formattedDate}</div>
+          </div>
+        )}
+        <div className="rx-section mt-4">
+          <div className="rx-rx-title" style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>Laboratory & Investigations Requisition</div>
+          {encounter.lab_tests?.length > 0 && (
+            <div className="rx-text" style={{ fontSize: '13px', lineHeight: '1.8' }}>
+              <strong>Advised Tests:</strong>
+              <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
+                {encounter.lab_tests.map((t, i) => <li key={i}>{t}</li>)}
+              </ul>
+            </div>
+          )}
+          {encounter.xray_notes && (
+            <div className="rx-text mt-4" style={{ fontSize: '13px' }}>
+              <strong>Radiology / Imaging:</strong>
+              <div style={{ marginTop: '5px' }}>{encounter.xray_notes}</div>
+            </div>
+          )}
+        </div>
+        <div className="rx-footer">
+          <div className="rx-footer-right">
+            <div className="rx-signature-line"></div>
+            <div className="rx-signature-label">Dr. Ahmed Khan</div>
+            <div className="rx-signature-sub">Signature & Stamp</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Screen Layout */}
       {encounter.vitals && Object.values(encounter.vitals).some(Boolean) && (
         <Section title="Vitals" icon={Heart} color="#ef4444">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -91,25 +170,17 @@ export default function EncounterDetailPage() {
         </Section>
       )}
 
-      {/* Complaints & Symptoms */}
       {(encounter.complaints || encounter.symptoms?.length > 0) && (
         <Section title="Complaints & Symptoms" icon={Activity} color="#f59e0b">
           {encounter.symptoms?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
-              {encounter.symptoms.map((s, i) => (
-                <span key={i} className="badge badge-warning">{s}</span>
-              ))}
+              {encounter.symptoms.map((s, i) => <span key={i} className="badge badge-warning">{s}</span>)}
             </div>
           )}
-          {encounter.complaints && (
-            <p className="text-sm text-(--color-text-secondary) whitespace-pre-wrap">
-              {encounter.complaints}
-            </p>
-          )}
+          {encounter.complaints && <p className="text-sm text-(--color-text-secondary) whitespace-pre-wrap">{encounter.complaints}</p>}
         </Section>
       )}
 
-      {/* Medical History */}
       {(encounter.past_medical || encounter.past_surgical || encounter.family_history || encounter.drug_allergies) && (
         <Section title="Medical History" icon={ClipboardList} color="#06b6d4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -128,38 +199,33 @@ export default function EncounterDetailPage() {
         </Section>
       )}
 
-      {/* Investigations */}
       {(encounter.lab_tests?.length > 0 || encounter.xray_notes || encounter.investigation_notes) && (
         <Section title="Investigations" icon={FlaskConical} color="#8b5cf6">
           {encounter.lab_tests?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
-              {encounter.lab_tests.map((t, i) => (
-                <span key={i} className="badge badge-info">{t}</span>
-              ))}
+              {encounter.lab_tests.map((t, i) => <span key={i} className="badge badge-info">{t}</span>)}
             </div>
           )}
           {encounter.xray_notes && (
             <div className="mb-2">
-              <span className="text-xs font-semibold text-(--color-text-muted)">X-Ray / Imaging:</span>
+              <span className="text-xs font-semibold text-(--color-text-muted)">X-Ray / Imaging Advised:</span>
               <p className="text-sm text-(--color-text-secondary) mt-1">{encounter.xray_notes}</p>
             </div>
           )}
           {encounter.investigation_notes && (
-            <p className="text-sm text-(--color-text-secondary)">{encounter.investigation_notes}</p>
+            <div className="mt-4 p-3 rounded-lg bg-green-500/10 border-l-4 border-green-500">
+              <span className="text-xs font-semibold text-green-700">Lab Results / Notes:</span>
+              <p className="text-sm text-(--color-text-secondary) mt-1">{encounter.investigation_notes}</p>
+            </div>
           )}
         </Section>
       )}
 
-      {/* Diagnosis */}
       {encounter.diagnoses?.length > 0 && (
         <Section title="Diagnosis" icon={Stethoscope} color="#10b981">
           <div className="space-y-2">
             {encounter.diagnoses.map((d, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-3 rounded-lg"
-                style={{ background: 'var(--color-bg-input)' }}
-              >
+              <div key={i} className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'var(--color-bg-input)' }}>
                 <span className="badge badge-success font-mono">{d.code}</span>
                 <span className="text-sm">{d.description}</span>
               </div>
@@ -176,7 +242,6 @@ export default function EncounterDetailPage() {
         </Section>
       )}
 
-      {/* Prescription */}
       {encounter.prescriptions?.length > 0 && (
         <Section title="Prescription" icon={Pill} color="#3b82f6">
           <div className="overflow-x-auto">

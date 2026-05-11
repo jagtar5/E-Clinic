@@ -51,6 +51,7 @@ function AppRoutes() {
         {/* Encounters */}
         <Route path="encounters" element={<EncountersPage />} />
         <Route path="encounters/new" element={<NewEncounterPage />} />
+        <Route path="encounters/edit/:encounterId" element={<NewEncounterPage />} />
         <Route path="encounters/:encounterId" element={<EncounterDetailPage />} />
         {/* Prescriptions */}
         <Route path="prescriptions" element={<PrescriptionsPage />} />

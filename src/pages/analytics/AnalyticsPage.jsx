@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import db from '../../lib/store';
 import {
   BarChart,
@@ -8,15 +8,23 @@ import {
   Stethoscope,
   Activity,
   Receipt,
+  Pill,
+  Thermometer,
+  FlaskConical,
+  X,
+  Search,
 } from 'lucide-react';
 
 export default function AnalyticsPage() {
+  const [detailModal, setDetailModal] = useState(null); // 'medicines', 'symptoms', 'diagnoses', 'tests'
+  const [modalSearch, setModalSearch] = useState('');
+
   const stats = useMemo(() => {
     const patients = db.select('patients').data;
     const encounters = db.select('encounters').data;
     const bills = db.select('bills').data;
 
-    // Simple gender distribution
+    // Demographics
     const males = patients.filter((p) => p.gender === 'Male').length;
     const females = patients.filter((p) => p.gender === 'Female').length;
     const other = patients.filter((p) => p.gender === 'Other').length;
@@ -25,13 +33,47 @@ export default function AnalyticsPage() {
     const revenue = bills.filter((b) => b.status === 'paid').reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
     const pending = bills.filter((b) => b.status === 'unpaid').reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
 
+    // Advanced Data Mining: Frequencies
+    const medCounts = {};
+    const symptomCounts = {};
+    const diagnosisCounts = {};
+    const testCounts = {};
+
+    encounters.forEach(enc => {
+      // Medicines
+      enc.prescriptions?.forEach(rx => {
+        if (rx.medicine_name) {
+          medCounts[rx.medicine_name] = (medCounts[rx.medicine_name] || 0) + 1;
+        }
+      });
+      // Symptoms
+      enc.symptoms?.forEach(s => {
+        symptomCounts[s] = (symptomCounts[s] || 0) + 1;
+      });
+      // Diagnoses
+      enc.diagnoses?.forEach(d => {
+        const key = `${d.code} - ${d.description}`;
+        diagnosisCounts[key] = (diagnosisCounts[key] || 0) + 1;
+      });
+      // Lab Tests
+      enc.lab_tests?.forEach(t => {
+        testCounts[t] = (testCounts[t] || 0) + 1;
+      });
+    });
+
+    // Sort function
+    const sortDict = (dict) => Object.entries(dict).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count }));
+
     return {
       totalPatients: patients.length,
       totalEncounters: encounters.length,
       revenue,
       pending,
       demographics: { males, females, other },
-      encountersList: encounters,
+      allMedicines: sortDict(medCounts),
+      allSymptoms: sortDict(symptomCounts),
+      allDiagnoses: sortDict(diagnosisCounts),
+      allTests: sortDict(testCounts),
     };
   }, []);
 
@@ -57,17 +99,62 @@ export default function AnalyticsPage() {
     document.body.removeChild(link);
   }
 
+  // Helper for detail modal
+  let modalData = [];
+  let modalTitle = '';
+  let modalIcon = null;
+  let modalColor = '';
+
+  if (detailModal === 'medicines') {
+    modalData = stats.allMedicines;
+    modalTitle = 'All Prescribed Medicines';
+    modalIcon = Pill;
+    modalColor = '#3b82f6';
+  } else if (detailModal === 'symptoms') {
+    modalData = stats.allSymptoms;
+    modalTitle = 'All Reported Symptoms';
+    modalIcon = Thermometer;
+    modalColor = '#f59e0b';
+  } else if (detailModal === 'diagnoses') {
+    modalData = stats.allDiagnoses;
+    modalTitle = 'All Diagnoses';
+    modalIcon = Stethoscope;
+    modalColor = '#10b981';
+  } else if (detailModal === 'tests') {
+    modalData = stats.allTests;
+    modalTitle = 'All Advised Lab Tests';
+    modalIcon = FlaskConical;
+    modalColor = '#8b5cf6';
+  }
+
+  const filteredModalData = modalData.filter(d => d.name.toLowerCase().includes(modalSearch.toLowerCase()));
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in relative">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-3">
-          <BarChart className="w-7 h-7 text-(--color-accent-primary)" />
-          Analytics & Reports
-        </h1>
-        <p className="text-(--color-text-secondary) mt-1">
-          Overview of clinic performance and data export
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-3">
+            <BarChart className="w-7 h-7 text-(--color-accent-primary)" />
+            Analytics & Reports
+          </h1>
+          <p className="text-(--color-text-secondary) mt-1">
+            Overview of clinic performance, trends, and data export
+          </p>
+        </div>
+        <div className="flex gap-2 relative group">
+          <button className="btn-secondary">
+            <Download className="w-4 h-4" /> Export CSV Data
+          </button>
+          {/* Dropdown for export */}
+          <div className="absolute right-0 top-full mt-1 w-48 bg-(--color-bg-elevated) border border-(--color-border-default) rounded-xl shadow-xl p-2 hidden group-hover:block z-50">
+            <ExportItem label="Patients" onClick={() => handleExport('patients')} />
+            <ExportItem label="Encounters" onClick={() => handleExport('encounters')} />
+            <ExportItem label="Appointments" onClick={() => handleExport('appointments')} />
+            <ExportItem label="Bills" onClick={() => handleExport('bills')} />
+            <ExportItem label="Medicines" onClick={() => handleExport('medicines')} />
+          </div>
+        </div>
       </div>
 
       {/* Quick Stats Grid */}
@@ -79,38 +166,135 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Simple Demographics View */}
-        <div className="card p-6">
+        
+        {/* Most Prescribed Medicines */}
+        <div className="card p-6 flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Pill className="w-5 h-5 text-blue-500" />
+              Top Prescribed Medicines
+            </h2>
+            <button className="text-xs text-blue-400 hover:text-blue-300 font-medium" onClick={() => setDetailModal('medicines')}>View All</button>
+          </div>
+          <div className="space-y-4 flex-grow">
+            {stats.allMedicines.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
+              stats.allMedicines.slice(0, 5).map((item, i) => (
+                <ProgressBar key={i} label={item.name} count={item.count} max={stats.allMedicines[0].count} color="#3b82f6" />
+              ))
+            }
+          </div>
+        </div>
+
+        {/* Most Common Diagnoses */}
+        <div className="card p-6 flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Stethoscope className="w-5 h-5 text-green-500" />
+              Most Common Diagnoses
+            </h2>
+            <button className="text-xs text-green-400 hover:text-green-300 font-medium" onClick={() => setDetailModal('diagnoses')}>View All</button>
+          </div>
+          <div className="space-y-4 flex-grow">
+            {stats.allDiagnoses.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
+              stats.allDiagnoses.slice(0, 5).map((item, i) => (
+                <ProgressBar key={i} label={item.name} count={item.count} max={stats.allDiagnoses[0].count} color="#10b981" />
+              ))
+            }
+          </div>
+        </div>
+
+        {/* Most Common Symptoms */}
+        <div className="card p-6 flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Thermometer className="w-5 h-5 text-amber-500" />
+              Top Reported Symptoms
+            </h2>
+            <button className="text-xs text-amber-400 hover:text-amber-300 font-medium" onClick={() => setDetailModal('symptoms')}>View All</button>
+          </div>
+          <div className="space-y-4 flex-grow">
+            {stats.allSymptoms.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
+              stats.allSymptoms.slice(0, 5).map((item, i) => (
+                <ProgressBar key={i} label={item.name} count={item.count} max={stats.allSymptoms[0].count} color="#f59e0b" />
+              ))
+            }
+          </div>
+        </div>
+
+        {/* Most Prescribed Lab Tests */}
+        <div className="card p-6 flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-purple-500" />
+              Top Advised Lab Tests
+            </h2>
+            <button className="text-xs text-purple-400 hover:text-purple-300 font-medium" onClick={() => setDetailModal('tests')}>View All</button>
+          </div>
+          <div className="space-y-4 flex-grow">
+            {stats.allTests.length === 0 ? <p className="text-sm text-(--color-text-muted)">No data available yet.</p> : 
+              stats.allTests.slice(0, 5).map((item, i) => (
+                <ProgressBar key={i} label={item.name} count={item.count} max={stats.allTests[0].count} color="#8b5cf6" />
+              ))
+            }
+          </div>
+        </div>
+
+        {/* Patient Demographics */}
+        <div className="card p-6 lg:col-span-2">
           <h2 className="text-lg font-semibold flex items-center gap-2 mb-6">
-            <PieChart className="w-5 h-5 text-(--color-accent-secondary)" />
+            <PieChart className="w-5 h-5 text-pink-500" />
             Patient Demographics
           </h2>
-          
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <DemographicBar label="Male" count={stats.demographics.males} total={stats.totalPatients} color="#3b82f6" />
             <DemographicBar label="Female" count={stats.demographics.females} total={stats.totalPatients} color="#ec4899" />
             <DemographicBar label="Other" count={stats.demographics.other} total={stats.totalPatients} color="#8b5cf6" />
           </div>
         </div>
 
-        {/* Export Data */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold flex items-center gap-2 mb-6">
-            <Download className="w-5 h-5 text-(--color-accent-success)" />
-            Export Data
-          </h2>
-          <p className="text-sm text-(--color-text-secondary) mb-4">
-            Download your clinic data in CSV format for backup or external analysis.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <ExportButton label="Export Patients" onClick={() => handleExport('patients')} />
-            <ExportButton label="Export Encounters" onClick={() => handleExport('encounters')} />
-            <ExportButton label="Export Appointments" onClick={() => handleExport('appointments')} />
-            <ExportButton label="Export Bills" onClick={() => handleExport('bills')} />
-            <ExportButton label="Export Medicines" onClick={() => handleExport('medicines')} />
+      </div>
+
+      {/* Detail Modal */}
+      {detailModal && (() => {
+        const ModalIcon = modalIcon;
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 animate-fade-in" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={() => {setDetailModal(null); setModalSearch('');}} />
+            <div className="relative w-full max-w-2xl bg-(--color-bg-base) border border-(--color-border-default) rounded-2xl p-6 shadow-2xl flex flex-col max-h-[85vh] animate-scale-in">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold flex items-center gap-3">
+                  {ModalIcon && <ModalIcon className="w-6 h-6" style={{ color: modalColor }} />}
+                  {modalTitle}
+                </h2>
+                <button className="btn-ghost p-1" onClick={() => {setDetailModal(null); setModalSearch('');}}>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-(--color-text-muted)" />
+              <input 
+                className="input" 
+                style={{ paddingLeft: '2.5rem' }} 
+                placeholder="Search..." 
+                value={modalSearch}
+                onChange={(e) => setModalSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="overflow-y-auto flex-grow space-y-3 pr-2">
+              {filteredModalData.length === 0 ? (
+                <div className="text-center py-8 text-(--color-text-muted)">No items found.</div>
+              ) : (
+                filteredModalData.map((item, i) => (
+                  <ProgressBar key={i} label={item.name} count={item.count} max={modalData[0].count} color={modalColor} />
+                ))
+              )}
+            </div>
           </div>
         </div>
-      </div>
+        );
+      })()}
     </div>
   );
 }
@@ -125,6 +309,21 @@ function StatCard({ icon: Icon, label, value, color }) {
       </div>
       <div className="text-2xl font-bold text-(--color-text-primary)">{value}</div>
       <div className="text-sm text-(--color-text-muted) mt-1">{label}</div>
+    </div>
+  );
+}
+
+function ProgressBar({ label, count, max, color }) {
+  const percentage = max === 0 ? 0 : Math.round((count / max) * 100);
+  return (
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span className="font-medium truncate pr-4">{label}</span>
+        <span className="text-(--color-text-muted) flex-shrink-0">{count}x</span>
+      </div>
+      <div className="h-2 w-full bg-(--color-bg-input) rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${percentage}%`, backgroundColor: color }}></div>
+      </div>
     </div>
   );
 }
@@ -144,10 +343,10 @@ function DemographicBar({ label, count, total, color }) {
   );
 }
 
-function ExportButton({ label, onClick }) {
+function ExportItem({ label, onClick }) {
   return (
-    <button className="btn-secondary justify-center w-full" onClick={onClick}>
-      <Download className="w-4 h-4" /> {label}
-    </button>
+    <div className="px-3 py-2 text-sm hover:bg-(--color-bg-hover) cursor-pointer rounded-lg text-(--color-text-primary)" onClick={onClick}>
+      {label}
+    </div>
   );
 }

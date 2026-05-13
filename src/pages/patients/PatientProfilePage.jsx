@@ -195,6 +195,11 @@ export default function PatientProfilePage() {
                           hour: '2-digit', minute: '2-digit',
                         })}
                       </span>
+                      {enc.status === 'waiting_for_labs' && (
+                        <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full whitespace-nowrap ml-2">
+                          Waiting Labs
+                        </span>
+                      )}
                     </div>
                     {enc.complaints && (
                       <p className="text-sm text-(--color-text-secondary) truncate max-w-lg">

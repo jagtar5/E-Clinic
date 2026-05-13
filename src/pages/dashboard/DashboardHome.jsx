@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import db from '../../lib/store';
@@ -65,14 +65,23 @@ export default function DashboardHome() {
     ];
   }, []);
 
+  const [encounterFilter, setEncounterFilter] = useState('all');
+
   // Recent encounters
   const recentEncounters = useMemo(() => {
-    return db.select('encounters', {
+    let encs = db.select('encounters', {
       sortBy: 'created_at',
       sortOrder: 'desc',
-      limit: 5,
     }).data;
-  }, []);
+
+    if (encounterFilter === 'waiting_for_labs') {
+      encs = encs.filter(e => e.status === 'waiting_for_labs');
+    } else if (encounterFilter === 'completed') {
+      encs = encs.filter(e => e.status === 'completed');
+    }
+    
+    return encs.slice(0, 6);
+  }, [encounterFilter]);
 
   // Recent patients
   const recentPatients = useMemo(() => {
@@ -158,10 +167,21 @@ export default function DashboardHome() {
         {/* Recent Encounters - Spans 3 columns */}
         <div className="lg:col-span-3 card p-0 overflow-hidden flex flex-col">
           <div className="flex items-center justify-between p-5 pb-3 border-b border-(--color-border-subtle) bg-(--color-bg-primary)/50">
-            <h2 className="text-base font-bold flex items-center gap-2">
-              <Activity className="w-5 h-5 text-(--color-accent-primary)" />
-              Recent Encounters
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-bold flex items-center gap-2">
+                <Activity className="w-5 h-5 text-(--color-accent-primary)" />
+                Recent Encounters
+              </h2>
+              <select 
+                className="input-inline text-xs font-semibold bg-white border border-(--color-border-default) rounded-md px-2 py-1 ml-2"
+                value={encounterFilter}
+                onChange={(e) => setEncounterFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="waiting_for_labs">Waiting for Labs</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
             <button className="btn-ghost text-xs" onClick={() => navigate('/dashboard/encounters')}>
               View All
             </button>
@@ -193,11 +213,18 @@ export default function DashboardHome() {
                         <span className="font-semibold text-sm text-(--color-text-primary)">{enc.patient_name}</span>
                       </td>
                       <td className="px-5 py-3">
-                        {enc.diagnoses?.length > 0 ? (
-                          <span className="badge badge-info">{enc.diagnoses[0].code}</span>
-                        ) : (
-                          <span className="text-xs text-(--color-text-muted)">—</span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {enc.diagnoses?.length > 0 ? (
+                            <span className="badge badge-info">{enc.diagnoses[0].code}</span>
+                          ) : (
+                            <span className="text-xs text-(--color-text-muted)">—</span>
+                          )}
+                          {enc.status === 'waiting_for_labs' && (
+                            <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                              Waiting Labs
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-3 text-sm text-(--color-text-muted) font-medium">
                         <span className="flex items-center gap-1.5">

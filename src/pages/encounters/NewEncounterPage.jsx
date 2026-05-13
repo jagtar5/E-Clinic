@@ -19,8 +19,12 @@ import {
   User,
   Search,
   Printer,
+  Upload,
+  Camera,
 } from 'lucide-react';
 import '../../styles/print.css';
+
+const HISTORY_TABS = ['Complaints', 'History', 'Examination'];
 
 const INITIAL_FORM = {
   patient_id: null,
@@ -41,22 +45,28 @@ const INITIAL_FORM = {
   past_surgical: '',
   family_history: '',
   drug_allergies: '',
+  examination_notes: '',
   selected_lab_tests: [],
   xray_notes: '',
   investigation_notes: '',
+  lab_results: {},
   selected_diagnoses: [],
   clinical_notes: '',
   prescriptions: [],
+  uploaded_reports: [],
 };
 
 export default function NewEncounterPage() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const { encounterId } = useParams();
   const [searchParams] = useSearchParams();
   const preselectedPatient = searchParams.get('patient');
 
   const { medicines, symptoms, diagnoses, labTests } = useMasterData();
 
+  const [historyTab, setHistoryTab] = useState('Complaints');
+  const [showLabResults, setShowLabResults] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState({});
@@ -134,6 +144,7 @@ export default function NewEncounterPage() {
             duration: p.duration,
             instructions: p.instructions,
           })) : [],
+          uploaded_reports: existing.uploaded_reports || [],
         });
         setPatientQuery(existing.patient_name);
       }
@@ -261,6 +272,17 @@ export default function NewEncounterPage() {
           instructions: p.instructions,
         })),
     };
+
+    let status = 'completed';
+    if (form.selected_lab_tests.length > 0) {
+      const hasMissingResults = form.selected_lab_tests.some(test => !form.lab_results || !form.lab_results[test.name] || form.lab_results[test.name].trim() === '');
+      if (hasMissingResults) {
+        status = 'waiting_for_labs';
+      }
+    }
+    encounter.status = status;
+    encounter.lab_results = form.lab_results || {};
+    encounter.uploaded_reports = form.uploaded_reports || [];
 
     let finalEncounterId = encounterId;
     if (encounterId) {
@@ -497,10 +519,7 @@ export default function NewEncounterPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Main Content Column */}
-        <div className="lg:col-span-8 space-y-6">
+      <div className="space-y-6">
           
           {/* Patient Details Section */}
           <Section card={true}>
@@ -587,33 +606,175 @@ export default function NewEncounterPage() {
             )}
           </Section>
 
-          {/* Vitals & Complaints */}
-          <Section card={true} className="bg-sky-50/40 border-sky-100/50">
-            <h2 className="text-base font-semibold mb-4 flex items-center gap-2 text-sky-700">
-              <Heart className="w-5 h-5 text-sky-500" /> Vitals & Complaints
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-              <VitalInput label="Pulse" value={form.pulse} onChange={(v) => updateForm('pulse', v)} placeholder="72" />
-              <div>
-                <label className="label">BP (Sys/Dia)</label>
-                <div className="flex items-center gap-1 bg-white rounded-md px-1 border border-transparent hover:border-slate-200 focus-within:border-sky-400 focus-within:bg-white transition-all">
-                  <input className="input-inline text-center px-1" placeholder="120" value={form.bp_systolic} onChange={(e) => updateForm('bp_systolic', e.target.value)} />
-                  <span className="text-slate-400">/</span>
-                  <input className="input-inline text-center px-1" placeholder="80" value={form.bp_diastolic} onChange={(e) => updateForm('bp_diastolic', e.target.value)} />
-                </div>
+          {/* Vitals - Compact Strip */}
+          <div className="bg-sky-50/40 border border-sky-100/50 rounded-xl p-3 flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2 text-sky-700 font-semibold mr-2">
+              <Heart className="w-4 h-4 text-sky-500" /> Vitals
+            </div>
+            <VitalInputCompact label="Pulse" value={form.pulse} onChange={(v) => updateForm('pulse', v)} placeholder="72 bpm" />
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-sky-600/70">BP</label>
+              <div className="flex items-center bg-white rounded flex-1 px-1 border border-transparent hover:border-slate-200 focus-within:border-sky-400">
+                <input className="input-inline text-center px-1 text-sm py-1 w-12" placeholder="120" value={form.bp_systolic} onChange={(e) => updateForm('bp_systolic', e.target.value)} />
+                <span className="text-slate-400">/</span>
+                <input className="input-inline text-center px-1 text-sm py-1 w-12" placeholder="80" value={form.bp_diastolic} onChange={(e) => updateForm('bp_diastolic', e.target.value)} />
               </div>
-              <VitalInput label="Temp (°F)" value={form.temperature} onChange={(v) => updateForm('temperature', v)} placeholder="98.6" />
-              <VitalInput label="Weight (kg)" value={form.weight} onChange={(v) => updateForm('weight', v)} placeholder="70" />
+            </div>
+            <VitalInputCompact label="Temp" value={form.temperature} onChange={(v) => updateForm('temperature', v)} placeholder="98.6 °F" />
+            <VitalInputCompact label="Weight" value={form.weight} onChange={(v) => updateForm('weight', v)} placeholder="70 kg" />
+            <VitalInputCompact label="Resp" value={form.respiratory_rate} onChange={(v) => updateForm('respiratory_rate', v)} placeholder="16 /min" />
+            <VitalInputCompact label="SpO2" value={form.spo2} onChange={(v) => updateForm('spo2', v)} placeholder="98%" />
+          </div>
+
+          {/* Clinical History Tabbed Card */}
+          <Section card={true} className="p-0 overflow-hidden">
+            <div className="flex border-b border-(--color-border-default) bg-(--color-bg-secondary)/50">
+              {HISTORY_TABS.map(tab => (
+                <button
+                  key={tab}
+                  className={`px-6 py-3 text-sm font-semibold transition-colors ${historyTab === tab ? 'text-(--color-accent-primary) border-b-2 border-(--color-accent-primary) bg-white' : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'}`}
+                  onClick={() => setHistoryTab(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+            <div className="p-5">
+              {historyTab === 'Complaints' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div>
+                    <label className="label">Symptoms</label>
+                    <SearchableCombobox items={symptoms} value={form.selected_symptoms} onChange={(v) => updateForm('selected_symptoms', v)} placeholder="Search symptoms..." multi />
+                  </div>
+                  <div>
+                    <label className="label">Chief Complaints Details</label>
+                    <textarea className="input-inline bg-(--color-bg-input) border border-transparent hover:border-slate-200 w-full" style={{ minHeight: '80px' }} placeholder="Describe complaints..." value={form.complaints} onChange={(e) => updateForm('complaints', e.target.value)} />
+                  </div>
+                </div>
+              )}
+              {historyTab === 'History' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                  <div><label className="label">Medical History</label><textarea className="input text-sm w-full" rows={3} value={form.past_medical} onChange={(e) => updateForm('past_medical', e.target.value)} placeholder="Past medical illnesses..." /></div>
+                  <div><label className="label">Surgical History</label><textarea className="input text-sm w-full" rows={3} value={form.past_surgical} onChange={(e) => updateForm('past_surgical', e.target.value)} placeholder="Past surgeries..." /></div>
+                  <div><label className="label">Family History</label><textarea className="input text-sm w-full" rows={2} value={form.family_history} onChange={(e) => updateForm('family_history', e.target.value)} placeholder="Family diseases..." /></div>
+                  <div><label className="label text-red-500">Drug Allergies</label><textarea className="input text-sm border-red-200 focus:border-red-400 w-full" rows={2} value={form.drug_allergies} onChange={(e) => updateForm('drug_allergies', e.target.value)} placeholder="Any known allergies..." /></div>
+                </div>
+              )}
+              {historyTab === 'Examination' && (
+                <div className="animate-fade-in">
+                  <label className="label">Physical / Systemic Examination</label>
+                  <textarea className="input-inline bg-(--color-bg-input) border border-transparent hover:border-slate-200 w-full" style={{ minHeight: '120px' }} placeholder="Enter examination findings..." value={form.examination_notes} onChange={(e) => updateForm('examination_notes', e.target.value)} />
+                </div>
+              )}
+            </div>
+          </Section>
+
+          {/* Diagnosis and Labs Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* Investigations & Labs */}
+          <Section card={true} className="bg-purple-50/40 border-purple-100/50">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold flex items-center gap-2 text-purple-700">
+                <FlaskConical className="w-5 h-5 text-purple-500" /> Investigations & Labs
+              </h2>
+              {form.selected_lab_tests.length > 0 && (
+                <button 
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${showLabResults ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}
+                  onClick={() => setShowLabResults(!showLabResults)}
+                >
+                  {showLabResults ? 'Hide Results' : 'Enter Results'}
+                </button>
+              )}
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="label">Symptoms</label>
-                <SearchableCombobox items={symptoms} value={form.selected_symptoms} onChange={(v) => updateForm('selected_symptoms', v)} placeholder="Search symptoms..." multi />
+                <label className="label">Advise Lab Tests</label>
+                <SearchableCombobox items={labTests} value={form.selected_lab_tests} onChange={(v) => updateForm('selected_lab_tests', v)} placeholder="Search tests..." multi />
               </div>
+
+              {showLabResults && form.selected_lab_tests.length > 0 && (
+                <div className="mt-4 p-4 bg-white rounded-xl border border-purple-100 animate-slide-up">
+                  <h3 className="text-sm font-semibold text-purple-800 mb-3">Lab Results Entry</h3>
+                  <div className="space-y-3 mb-4">
+                    {form.selected_lab_tests.map((test, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <label className="text-sm font-medium w-1/3 truncate" title={test.name}>{test.name}</label>
+                        <input 
+                          className="input-inline bg-purple-50 flex-1 px-2 py-1.5 text-sm" 
+                          placeholder="Enter value/result..." 
+                          value={form.lab_results?.[test.name] || ''}
+                          onChange={(e) => {
+                            const newResults = { ...(form.lab_results || {}) };
+                            newResults[test.name] = e.target.value;
+                            updateForm('lab_results', newResults);
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Upload Reports Mock UI */}
+                  <div className="pt-3 border-t border-purple-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-semibold text-purple-800">Scanned Reports</label>
+                      <button 
+                        className="btn-ghost text-xs flex items-center gap-1 text-purple-600 hover:bg-purple-50"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Camera className="w-3.5 h-3.5" /> Capture / Upload
+                      </button>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*,application/pdf" 
+                        capture="environment" 
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files);
+                          if (files.length > 0) {
+                            const newFiles = files.map(f => ({ name: f.name, date: new Date().toISOString() }));
+                            updateForm('uploaded_reports', [...form.uploaded_reports, ...newFiles]);
+                            // Reset input so the same file can be selected again if needed
+                            e.target.value = null;
+                          }
+                        }}
+                      />
+                    </div>
+                    
+                    {form.uploaded_reports?.length > 0 ? (
+                      <div className="space-y-2">
+                        {form.uploaded_reports.map((file, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-purple-50/50 px-3 py-2 rounded-lg text-sm">
+                            <div className="flex items-center gap-2 truncate">
+                              <Upload className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                              <span className="truncate">{file.name}</span>
+                            </div>
+                            <button 
+                              className="text-red-400 hover:text-red-600 p-1 flex-shrink-0"
+                              onClick={() => {
+                                const newReports = [...form.uploaded_reports];
+                                newReports.splice(idx, 1);
+                                updateForm('uploaded_reports', newReports);
+                              }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-purple-400 italic">No reports attached yet. Only use this for client demo.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="label">Chief Complaints</label>
-                <textarea className="input-inline bg-white border border-transparent hover:border-slate-200" style={{ minHeight: '60px' }} placeholder="Describe complaints..." value={form.complaints} onChange={(e) => updateForm('complaints', e.target.value)} />
+                <label className="label">Radiology / Investigation Notes</label>
+                <textarea className="input-inline bg-white border border-transparent hover:border-slate-200 w-full" style={{ minHeight: '60px' }} placeholder="X-Ray findings, general notes..." value={form.investigation_notes} onChange={(e) => updateForm('investigation_notes', e.target.value)} />
               </div>
             </div>
           </Section>
@@ -636,6 +797,7 @@ export default function NewEncounterPage() {
               </div>
             </div>
           </Section>
+          </div>
 
           {/* Prescription */}
           <Section card={true} id="prescription" className="bg-indigo-50/40 border-indigo-100/50">
@@ -670,40 +832,6 @@ export default function NewEncounterPage() {
               </button>
             </div>
           </Section>
-
-        </div>
-
-        {/* Sidebar Column */}
-        <div className="lg:col-span-4 space-y-6">
-          
-          <Section card={true}>
-            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <FlaskConical className="w-5 h-5 text-purple-500" /> Investigations & Labs
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="label">Advise Lab Tests</label>
-                <SearchableCombobox items={labTests} value={form.selected_lab_tests} onChange={(v) => updateForm('selected_lab_tests', v)} placeholder="Search tests..." multi />
-              </div>
-              <div>
-                <label className="label">Lab Results / Notes</label>
-                <textarea className="input text-sm" style={{ minHeight: '80px' }} placeholder="Enter results for returning patients..." value={form.investigation_notes} onChange={(e) => updateForm('investigation_notes', e.target.value)} />
-              </div>
-            </div>
-          </Section>
-
-          <Section card={true}>
-            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-teal-500" /> History
-            </h2>
-            <div className="space-y-4">
-              <div><label className="label text-xs">Medical History</label><input className="input text-sm" value={form.past_medical} onChange={(e) => updateForm('past_medical', e.target.value)} /></div>
-              <div><label className="label text-xs">Surgical History</label><input className="input text-sm" value={form.past_surgical} onChange={(e) => updateForm('past_surgical', e.target.value)} /></div>
-              <div><label className="label text-xs">Drug Allergies</label><input className="input text-sm text-red-500" value={form.drug_allergies} onChange={(e) => updateForm('drug_allergies', e.target.value)} /></div>
-            </div>
-          </Section>
-
-        </div>
       </div>
     </div>
   );
@@ -717,11 +845,11 @@ function Section({ card, children, id, className = '' }) {
   );
 }
 
-function VitalInput({ label, value, onChange, placeholder }) {
+function VitalInputCompact({ label, value, onChange, placeholder }) {
   return (
-    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-sky-400 transition-all">
-      <label className="label px-2 pt-1 text-sky-600/70 mb-0">{label}</label>
-      <input className="input-inline text-center pb-1 pt-0 font-medium" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+    <div className="flex items-center gap-2">
+      <label className="text-xs font-medium text-sky-600/70">{label}</label>
+      <input className="input-inline bg-white text-center px-2 py-1 text-sm rounded border border-transparent hover:border-slate-200 focus-within:border-sky-400 w-20" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }

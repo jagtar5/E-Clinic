@@ -90,6 +90,11 @@ export default function EncountersPage() {
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-(--color-text-muted)" />
                       <span className="font-semibold">{enc.patient_name}</span>
+                      {enc.status === 'waiting_for_labs' && (
+                        <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full whitespace-nowrap ml-2">
+                          Waiting Labs
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-(--color-text-muted)">
                       <Clock className="w-3 h-3" />

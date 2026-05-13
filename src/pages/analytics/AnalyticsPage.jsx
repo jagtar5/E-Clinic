@@ -15,67 +15,74 @@ import {
   Search,
 } from 'lucide-react';
 
+const PERIODS = [
+  { label: 'Today', days: 0 },
+  { label: '7 Days', days: 7 },
+  { label: '30 Days', days: 30 },
+  { label: '3 Months', days: 90 },
+  { label: 'All Time', days: -1 },
+];
+
 export default function AnalyticsPage() {
-  const [detailModal, setDetailModal] = useState(null); // 'medicines', 'symptoms', 'diagnoses', 'tests'
+  const [detailModal, setDetailModal] = useState(null);
   const [modalSearch, setModalSearch] = useState('');
+  const [periodDays, setPeriodDays] = useState(-1); // -1 = All Time
 
   const stats = useMemo(() => {
     const patients = db.select('patients').data;
-    const encounters = db.select('encounters').data;
+    const allEncounters = db.select('encounters').data;
     const bills = db.select('bills').data;
 
-    // Demographics
+    // Filter encounters by time period
+    let encounters = allEncounters;
+    if (periodDays === 0) {
+      const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+      encounters = allEncounters.filter(e => new Date(e.created_at) >= todayStart);
+    } else if (periodDays > 0) {
+      const cutoff = new Date(Date.now() - periodDays * 86400000);
+      encounters = allEncounters.filter(e => new Date(e.created_at) >= cutoff);
+    }
+
+    // Demographics (always all-time)
     const males = patients.filter((p) => p.gender === 'Male').length;
     const females = patients.filter((p) => p.gender === 'Female').length;
     const other = patients.filter((p) => p.gender === 'Other').length;
 
-    // Revenue
+    // Revenue (period-filtered bills by encounter date approximation — use all for now)
     const revenue = bills.filter((b) => b.status === 'paid').reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
     const pending = bills.filter((b) => b.status === 'unpaid').reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
 
-    // Advanced Data Mining: Frequencies
+    // Frequency counts from filtered encounters
     const medCounts = {};
     const symptomCounts = {};
     const diagnosisCounts = {};
     const testCounts = {};
 
     encounters.forEach(enc => {
-      // Medicines
       enc.prescriptions?.forEach(rx => {
-        if (rx.medicine_name) {
-          medCounts[rx.medicine_name] = (medCounts[rx.medicine_name] || 0) + 1;
-        }
+        if (rx.medicine_name) medCounts[rx.medicine_name] = (medCounts[rx.medicine_name] || 0) + 1;
       });
-      // Symptoms
-      enc.symptoms?.forEach(s => {
-        symptomCounts[s] = (symptomCounts[s] || 0) + 1;
-      });
-      // Diagnoses
+      enc.symptoms?.forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
       enc.diagnoses?.forEach(d => {
         const key = `${d.code} - ${d.description}`;
         diagnosisCounts[key] = (diagnosisCounts[key] || 0) + 1;
       });
-      // Lab Tests
-      enc.lab_tests?.forEach(t => {
-        testCounts[t] = (testCounts[t] || 0) + 1;
-      });
+      enc.lab_tests?.forEach(t => { testCounts[t] = (testCounts[t] || 0) + 1; });
     });
 
-    // Sort function
     const sortDict = (dict) => Object.entries(dict).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count }));
 
     return {
       totalPatients: patients.length,
       totalEncounters: encounters.length,
-      revenue,
-      pending,
+      revenue, pending,
       demographics: { males, females, other },
       allMedicines: sortDict(medCounts),
       allSymptoms: sortDict(symptomCounts),
       allDiagnoses: sortDict(diagnosisCounts),
       allTests: sortDict(testCounts),
     };
-  }, []);
+  }, [periodDays]);
 
   function handleExport(table) {
     const data = db.select(table).data;
@@ -142,17 +149,34 @@ export default function AnalyticsPage() {
             Overview of clinic performance, trends, and data export
           </p>
         </div>
-        <div className="flex gap-2 relative group">
-          <button className="btn-secondary">
-            <Download className="w-4 h-4" /> Export CSV Data
-          </button>
-          {/* Dropdown for export */}
-          <div className="absolute right-0 top-full mt-1 w-48 bg-(--color-bg-elevated) border border-(--color-border-default) rounded-xl shadow-xl p-2 hidden group-hover:block z-50">
-            <ExportItem label="Patients" onClick={() => handleExport('patients')} />
-            <ExportItem label="Encounters" onClick={() => handleExport('encounters')} />
-            <ExportItem label="Appointments" onClick={() => handleExport('appointments')} />
-            <ExportItem label="Bills" onClick={() => handleExport('bills')} />
-            <ExportItem label="Medicines" onClick={() => handleExport('medicines')} />
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Time Period Filter Pills */}
+          <div className="flex items-center gap-1 bg-(--color-bg-secondary) p-1 rounded-xl border border-(--color-border-default)">
+            {PERIODS.map(p => (
+              <button
+                key={p.days}
+                onClick={() => setPeriodDays(p.days)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  periodDays === p.days
+                    ? 'bg-white text-(--color-accent-primary) shadow-sm border border-(--color-border-default)'
+                    : 'text-(--color-text-muted) hover:text-(--color-text-primary)'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2 relative group">
+            <button className="btn-secondary">
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+            <div className="absolute right-0 top-full mt-1 w-48 bg-(--color-bg-elevated) border border-(--color-border-default) rounded-xl shadow-xl p-2 hidden group-hover:block z-50">
+              <ExportItem label="Patients" onClick={() => handleExport('patients')} />
+              <ExportItem label="Encounters" onClick={() => handleExport('encounters')} />
+              <ExportItem label="Appointments" onClick={() => handleExport('appointments')} />
+              <ExportItem label="Bills" onClick={() => handleExport('bills')} />
+              <ExportItem label="Medicines" onClick={() => handleExport('medicines')} />
+            </div>
           </div>
         </div>
       </div>

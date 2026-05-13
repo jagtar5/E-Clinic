@@ -304,7 +304,14 @@ function PrescriptionsList({ navigate }) {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">{enc.patient_name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold">{enc.patient_name}</div>
+                    {enc.status === 'waiting_for_labs' && (
+                      <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                        Waiting Labs
+                      </span>
+                    )}
+                  </div>
                   <div className="text-sm text-(--color-text-muted) mt-0.5">
                     {new Date(enc.created_at).toLocaleDateString('en-PK', {
                       year: 'numeric', month: 'short', day: 'numeric',

@@ -77,5 +77,3 @@ You can test the system using the following demo accounts:
 Internal Project for Utmani Clinic. All rights reserved.
 
 ---
-
-Built with ❤️ by Antigravity AI for Dr. Nizamuddin Utmani.

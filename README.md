@@ -2,7 +2,8 @@
 
 A high-performance, minimalist clinical encounter and patient management system designed for speed, privacy, and visual excellence. Built for **Dr. Nizamuddin Utmani**, this platform streamlines the daily workflow of a busy clinic from registration to prescription generation.
 
-<img width="1630" height="1530" alt="polite-pithivier-9bcdff netlify app_dashboard" src="https://github.com/user-attachments/assets/0ad07835-79cb-4d0a-9d5e-fe7403eb43f7" />
+<img width="2450" height="1530" alt="polite-pithivier-9bcdff netlify app_dashboard (1)" src="https://github.com/user-attachments/assets/609fce5c-e7fd-4532-9068-98f37904451c" />
+
 
 
 ## 🚀 Key Features

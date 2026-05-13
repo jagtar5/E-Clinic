@@ -86,7 +86,7 @@ export default function LoginPage() {
               <Heart className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-(--color-text-primary)">E-Clinic</h1>
+              <h1 className="text-2xl font-bold text-(--color-text-primary)">Utmani Clinic</h1>
               <p className="text-sm text-(--color-text-muted)">Management System</p>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function LoginPage() {
               <Heart className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">E-Clinic</h1>
+              <h1 className="text-xl font-bold">Utmani Clinic</h1>
               <p className="text-xs text-(--color-text-muted)">Management System</p>
             </div>
           </div>

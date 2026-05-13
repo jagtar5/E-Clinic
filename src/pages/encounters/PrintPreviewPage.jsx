@@ -119,12 +119,12 @@ export default function PrintPreviewPage() {
         {sections.header && (
           <div className="rx-header">
             <div className="rx-header-left">
-              <div className="rx-clinic-name">E-Clinic Medical Center</div>
+              <div className="rx-clinic-name">Utmani Clinic</div>
               <div className="rx-clinic-detail">123 Medical Road, Islamabad, Pakistan</div>
               <div className="rx-clinic-detail">Phone: 051-1234567</div>
             </div>
             <div className="rx-header-right">
-              <div className="rx-doctor-name">Dr. Ahmed Khan</div>
+              <div className="rx-doctor-name">Dr. Naizamuddin Utmani</div>
               <div className="rx-doctor-detail">MBBS, FCPS (Medicine)</div>
               <div className="rx-doctor-detail">PMC Reg: 12345-P</div>
             </div>
@@ -287,7 +287,7 @@ export default function PrintPreviewPage() {
             </div>
             <div className="rx-footer-right">
               <div className="rx-signature-line"></div>
-              <div className="rx-signature-label">Dr. Ahmed Khan</div>
+              <div className="rx-signature-label">Dr. Naizamuddin Utmani</div>
               <div className="rx-signature-sub">Signature & Stamp</div>
             </div>
           </div>

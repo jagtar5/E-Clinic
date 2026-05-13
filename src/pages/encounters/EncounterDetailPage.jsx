@@ -102,7 +102,7 @@ export default function EncounterDetailPage() {
       </div>
 
       {/* Quick Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card p-4 bg-indigo-50/50 border-indigo-100 flex flex-col justify-between">
           <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Prescribed Medicines</div>
           <div className="space-y-1">
@@ -147,6 +147,19 @@ export default function EncounterDetailPage() {
               <span className="text-sm text-purple-600 italic">{encounter.lab_tests.length} tests advised</span>
             ) : (
               <span className="text-sm text-slate-400">None</span>
+            )}
+          </div>
+        </div>
+
+        <div className="card p-4 bg-slate-50/50 border-slate-100 flex flex-col justify-between">
+          <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Lab Attachments</div>
+          <div className="space-y-2">
+            {encounter.uploaded_reports?.length > 0 ? (
+              <button className="btn-secondary btn-sm w-full flex items-center justify-center gap-2">
+                <FileText className="w-4 h-4" /> View {encounter.uploaded_reports.length} Reports
+              </button>
+            ) : (
+              <div className="text-sm text-slate-400 italic py-1">No attachments uploaded</div>
             )}
           </div>
         </div>

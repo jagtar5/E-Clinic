@@ -121,7 +121,7 @@ export default function DashboardLayout() {
           </div>
           {!sidebarCollapsed && (
             <div className="animate-fade-in">
-              <h1 className="text-base font-bold text-(--color-text-primary) leading-tight">E-Clinic</h1>
+              <h1 className="text-base font-bold text-(--color-text-primary) leading-tight">Utmani Clinic</h1>
               <p className="text-[0.65rem] text-(--color-text-muted) leading-tight">Management System</p>
             </div>
           )}

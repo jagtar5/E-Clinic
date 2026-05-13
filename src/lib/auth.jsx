@@ -8,7 +8,7 @@ const DEMO_USERS = {
   'admin@clinic.com': {
     id: 'demo-admin-001',
     email: 'admin@clinic.com',
-    full_name: 'Dr. Ahmed Khan',
+    full_name: 'Dr. Naizamuddin Utmani',
     role: 'super_admin',
     avatar_url: null,
   },

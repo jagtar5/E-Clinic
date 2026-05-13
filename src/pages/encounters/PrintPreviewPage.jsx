@@ -1,42 +1,40 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import db from '../../lib/store';
 import {
   ArrowLeft,
   Printer,
-  Eye,
-  EyeOff,
   FileText,
   AlertTriangle,
 } from 'lucide-react';
 import '../../styles/print.css';
 
-const SECTION_TOGGLES = [
-  { key: 'header', label: 'Clinic Header' },
-  { key: 'patient', label: 'Patient Info' },
-  { key: 'vitals', label: 'Vitals' },
-  { key: 'complaints', label: 'Complaints' },
-  { key: 'diagnosis', label: 'Diagnosis' },
-  { key: 'investigations', label: 'Investigations' },
-  { key: 'prescription', label: 'Prescription (Rx)' },
-  { key: 'notes', label: 'Clinical Notes' },
-  { key: 'footer', label: 'Footer / Signature' },
-];
+const DEFAULT_PRINT_SETTINGS = {
+  header: true,
+  patient: true,
+  vitals: true,
+  complaints: true,
+  diagnosis: true,
+  investigations: false,
+  prescription: true,
+  notes: false,
+  footer: true,
+};
 
-export default function PrescriptionsPage() {
+export default function PrintPreviewPage() {
   const { encounterId } = useParams();
   const navigate = useNavigate();
 
-  const [sections, setSections] = useState({
-    header: true,
-    patient: true,
-    vitals: true,
-    complaints: true,
-    diagnosis: true,
-    investigations: false,
-    prescription: true,
-    notes: false,
-    footer: true,
+  const [sections, setSections] = useState(() => {
+    const saved = localStorage.getItem('eclinic_print_settings');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEFAULT_PRINT_SETTINGS;
+      }
+    }
+    return DEFAULT_PRINT_SETTINGS;
   });
 
   const encounter = useMemo(() => {
@@ -49,9 +47,9 @@ export default function PrescriptionsPage() {
     return db.findById('patients', encounter.patient_id);
   }, [encounter]);
 
-  // If no encounter ID, show list of recent encounters to pick from
   if (!encounterId) {
-    return <PrescriptionsList navigate={navigate} />;
+    navigate('/dashboard/encounters', { replace: true });
+    return null;
   }
 
   if (!encounter) {
@@ -68,9 +66,23 @@ export default function PrescriptionsPage() {
     );
   }
 
-  function toggleSection(key) {
-    setSections((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
+  useEffect(() => {
+    // Add print mode class to body so print.css rules apply
+    document.body.classList.add('print-mode-rx');
+
+    let timer;
+    if (encounter && patient) {
+      // Small delay to ensure styles and fonts are loaded before triggering print dialog
+      timer = setTimeout(() => {
+        window.print();
+      }, 500);
+    }
+    
+    return () => {
+      document.body.classList.remove('print-mode-rx');
+      if (timer) clearTimeout(timer);
+    };
+  }, [encounter, patient]);
 
   function handlePrint() {
     window.print();
@@ -100,28 +112,6 @@ export default function PrescriptionsPage() {
           </button>
         </div>
 
-        {/* Section Toggles */}
-        <div className="card p-4">
-          <p className="text-xs text-(--color-text-muted) uppercase tracking-wider font-semibold mb-3">
-            Toggle sections to show/hide on print
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {SECTION_TOGGLES.map((s) => (
-              <button
-                key={s.key}
-                onClick={() => toggleSection(s.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  sections[s.key]
-                    ? 'bg-(--color-accent-primary)/15 text-(--color-accent-primary) border border-(--color-accent-primary)/30'
-                    : 'bg-(--color-bg-input) text-(--color-text-muted) border border-(--color-border-subtle)'
-                }`}
-              >
-                {sections[s.key] ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Printable Prescription */}
@@ -268,71 +258,3 @@ export default function PrescriptionsPage() {
   );
 }
 
-function PrescriptionsList({ navigate }) {
-  const encounters = useMemo(() => {
-    return db.select('encounters', {
-      sortBy: 'created_at',
-      sortOrder: 'desc',
-    }).data.filter((e) => e.prescriptions?.length > 0);
-  }, []);
-
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-3">
-          <FileText className="w-7 h-7 text-(--color-accent-info)" />
-          Prescriptions
-        </h1>
-        <p className="text-(--color-text-secondary) mt-1">Select an encounter to view/print its prescription</p>
-      </div>
-
-      {encounters.length === 0 ? (
-        <div className="card p-12 text-center">
-          <FileText className="w-12 h-12 mx-auto text-(--color-text-muted) mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No prescriptions yet</h3>
-          <p className="text-(--color-text-secondary)">
-            Create a clinical encounter with medicines to generate prescriptions.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {encounters.map((enc) => (
-            <div
-              key={enc.id}
-              className="card p-5 cursor-pointer group"
-              onClick={() => navigate(`/dashboard/prescriptions/${enc.id}`)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className="font-semibold">{enc.patient_name}</div>
-                    {enc.status === 'waiting_for_labs' && (
-                      <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                        Waiting Labs
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm text-(--color-text-muted) mt-0.5">
-                    {new Date(enc.created_at).toLocaleDateString('en-PK', {
-                      year: 'numeric', month: 'short', day: 'numeric',
-                    })}
-                    {' · '}
-                    {enc.prescriptions.length} medicine{enc.prescriptions.length !== 1 ? 's' : ''}
-                  </div>
-                  {enc.diagnoses?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {enc.diagnoses.map((d, i) => (
-                        <span key={i} className="badge badge-info text-[0.625rem]">{d.code}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <Printer className="w-5 h-5 text-(--color-text-muted) group-hover:text-(--color-accent-primary) transition-colors" />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}

@@ -6,17 +6,14 @@ import {
   LayoutDashboard,
   Users,
   Stethoscope,
-  FileText,
   Database,
   CalendarClock,
-  Receipt,
   BarChart3,
-  LogOut,
-  Menu,
-  X,
   ChevronRight,
   Settings,
-  Bell,
+  Menu,
+  X,
+  LogOut,
 } from 'lucide-react';
 
 const navItems = [
@@ -40,21 +37,15 @@ const navItems = [
     roles: ['super_admin', 'doctor'],
   },
   {
-    label: 'Prescriptions',
-    path: '/dashboard/prescriptions',
-    icon: FileText,
-    roles: ['super_admin', 'doctor'],
-  },
-  {
     label: 'Appointments',
     path: '/dashboard/appointments',
     icon: CalendarClock,
     roles: ['super_admin', 'doctor', 'receptionist'],
   },
   {
-    label: 'Billing',
-    path: '/dashboard/billing',
-    icon: Receipt,
+    label: 'Settings',
+    path: '/dashboard/settings',
+    icon: Settings,
     roles: ['super_admin', 'doctor'],
   },
   {
@@ -246,17 +237,7 @@ export default function DashboardLayout() {
 
           <div className="flex-1" />
 
-          <button className="btn-ghost p-2 relative" title="Notifications">
-            <Bell className="w-5 h-5" />
-            <span
-              className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-              style={{ background: 'var(--color-accent-danger)' }}
-            />
-          </button>
 
-          <button className="btn-ghost p-2" title="Settings">
-            <Settings className="w-5 h-5" />
-          </button>
         </header>
 
         {/* Page Content */}

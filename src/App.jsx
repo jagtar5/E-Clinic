@@ -12,10 +12,10 @@ import PatientProfilePage from './pages/patients/PatientProfilePage';
 import EncountersPage from './pages/encounters/EncountersPage';
 import NewEncounterPage from './pages/encounters/NewEncounterPage';
 import EncounterDetailPage from './pages/encounters/EncounterDetailPage';
-import PrescriptionsPage from './pages/prescriptions/PrescriptionsPage';
+import PrintPreviewPage from './pages/encounters/PrintPreviewPage';
 import MasterDataPage from './pages/master/MasterDataPage';
 import AppointmentsPage from './pages/appointments/AppointmentsPage';
-import BillingPage from './pages/billing/BillingPage';
+import SettingsPage from './pages/settings/SettingsPage';
 import AnalyticsPage from './pages/analytics/AnalyticsPage';
 
 function AppRoutes() {
@@ -53,14 +53,13 @@ function AppRoutes() {
         <Route path="encounters/new" element={<NewEncounterPage />} />
         <Route path="encounters/edit/:encounterId" element={<NewEncounterPage />} />
         <Route path="encounters/:encounterId" element={<EncounterDetailPage />} />
-        {/* Prescriptions */}
-        <Route path="prescriptions" element={<PrescriptionsPage />} />
-        <Route path="prescriptions/:encounterId" element={<PrescriptionsPage />} />
+        {/* Prescriptions Preview */}
+        <Route path="prescriptions/:encounterId" element={<PrintPreviewPage />} />
         {/* Other */}
         <Route path="master-data" element={<MasterDataPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
-        <Route path="billing" element={<BillingPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       {/* Catch-all redirect */}

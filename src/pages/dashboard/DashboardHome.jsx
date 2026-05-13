@@ -12,6 +12,7 @@ import {
   Activity,
   ArrowUpRight,
   Plus,
+  Printer,
 } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -200,6 +201,7 @@ export default function DashboardHome() {
                     <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Diagnosis</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Time</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Rx</th>
+                    <th className="text-right px-5 py-3 text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-(--color-border-subtle)">
@@ -238,6 +240,18 @@ export default function DashboardHome() {
                         ) : (
                           <span className="text-xs text-(--color-text-muted)">—</span>
                         )}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          className="btn-ghost p-1.5 text-(--color-text-muted) hover:text-(--color-accent-primary)"
+                          title="Fast Print Rx"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/dashboard/prescriptions/${enc.id}`);
+                          }}
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}

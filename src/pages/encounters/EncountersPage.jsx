@@ -9,6 +9,7 @@ import {
   User,
   ChevronRight,
   AlertCircle,
+  Printer,
 } from 'lucide-react';
 
 export default function EncountersPage() {
@@ -145,7 +146,19 @@ export default function EncountersPage() {
                   )}
                 </div>
 
-                <ChevronRight className="w-5 h-5 text-(--color-text-muted) group-hover:text-(--color-text-primary) transition-colors flex-shrink-0 ml-4" />
+                <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                  <button 
+                    className="btn-ghost p-2 text-(--color-text-muted) hover:text-(--color-accent-primary) z-10"
+                    title="Fast Print Rx"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/dashboard/prescriptions/${enc.id}`);
+                    }}
+                  >
+                    <Printer className="w-5 h-5" />
+                  </button>
+                  <ChevronRight className="w-5 h-5 text-(--color-text-muted) group-hover:text-(--color-text-primary) transition-colors" />
+                </div>
               </div>
             </div>
           ))}

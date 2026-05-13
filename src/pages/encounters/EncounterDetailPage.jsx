@@ -37,7 +37,6 @@ export default function EncounterDetailPage() {
   useEffect(() => {
     return () => {
       document.body.classList.remove('print-mode-rx');
-      document.body.classList.remove('print-mode-lab');
     };
   }, []);
 
@@ -62,12 +61,6 @@ export default function EncounterDetailPage() {
 
   function handlePrintRx() {
     navigate(`/dashboard/prescriptions/${encounterId}`);
-  }
-
-  function handlePrintLab() {
-    document.body.classList.remove('print-mode-rx');
-    document.body.classList.add('print-mode-lab');
-    window.print();
   }
 
   return (
@@ -101,60 +94,13 @@ export default function EncounterDetailPage() {
           <button className="btn-secondary" onClick={() => navigate(`/dashboard/encounters/edit/${encounterId}`)}>
             <Edit className="w-4 h-4" /> Edit
           </button>
-          <button className="btn-secondary" onClick={handlePrintLab} disabled={!encounter.lab_tests?.length && !encounter.xray_notes}>
-            <FlaskConical className="w-4 h-4" /> Print Lab Slip
-          </button>
           <button className="btn-primary" onClick={handlePrintRx}>
-            <Printer className="w-4 h-4" /> Print Rx
+            <Printer className="w-4 h-4" /> Print Encounter
           </button>
         </div>
       </div>
 
-      {/* Lab Slip Print Layout (Hidden on screen) */}
-      <div className="rx-page hidden" id="lab-slip-print">
-        <div className="rx-header">
-          <div className="rx-header-left">
-            <div className="rx-clinic-name">E-Clinic Medical Center</div>
-            <div className="rx-clinic-detail">123 Medical Road, Islamabad</div>
-          </div>
-          <div className="rx-header-right">
-            <div className="rx-doctor-name">Dr. Ahmed Khan</div>
-            <div className="rx-doctor-detail">MBBS, FCPS</div>
-          </div>
-        </div>
-        <div className="rx-divider"></div>
-        {patient && (
-          <div className="rx-patient-row">
-            <div className="rx-patient-item"><span className="rx-label">Patient:</span> {patient.full_name}</div>
-            <div className="rx-patient-item"><span className="rx-label">Age/Sex:</span> {patient.age}y / {patient.gender}</div>
-            <div className="rx-patient-item"><span className="rx-label">Date:</span> {formattedDate}</div>
-          </div>
-        )}
-        <div className="rx-section mt-4">
-          <div className="rx-rx-title" style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>Laboratory & Investigations Requisition</div>
-          {encounter.lab_tests?.length > 0 && (
-            <div className="rx-text" style={{ fontSize: '13px', lineHeight: '1.8' }}>
-              <strong>Advised Tests:</strong>
-              <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
-                {encounter.lab_tests.map((t, i) => <li key={i}>{t}</li>)}
-              </ul>
-            </div>
-          )}
-          {encounter.xray_notes && (
-            <div className="rx-text mt-4" style={{ fontSize: '13px' }}>
-              <strong>Radiology / Imaging:</strong>
-              <div style={{ marginTop: '5px' }}>{encounter.xray_notes}</div>
-            </div>
-          )}
-        </div>
-        <div className="rx-footer">
-          <div className="rx-footer-right">
-            <div className="rx-signature-line"></div>
-            <div className="rx-signature-label">Dr. Ahmed Khan</div>
-            <div className="rx-signature-sub">Signature & Stamp</div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Screen Layout */}
       {encounter.vitals && Object.values(encounter.vitals).some(Boolean) && (

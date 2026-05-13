@@ -15,7 +15,7 @@ const DEFAULT_PRINT_SETTINGS = {
   vitals: true,
   complaints: true,
   diagnosis: true,
-  investigations: false,
+  investigations: true,
   prescription: true,
   notes: false,
   footer: true,
@@ -67,9 +67,6 @@ export default function PrintPreviewPage() {
   }
 
   useEffect(() => {
-    // Add print mode class to body so print.css rules apply
-    document.body.classList.add('print-mode-rx');
-
     let timer;
     if (encounter && patient) {
       // Small delay to ensure styles and fonts are loaded before triggering print dialog
@@ -77,9 +74,7 @@ export default function PrintPreviewPage() {
         window.print();
       }, 500);
     }
-    
     return () => {
-      document.body.classList.remove('print-mode-rx');
       if (timer) clearTimeout(timer);
     };
   }, [encounter, patient]);
@@ -102,9 +97,9 @@ export default function PrintPreviewPage() {
             <button className="btn-ghost" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
               <FileText className="w-7 h-7 text-(--color-accent-info)" />
-              Prescription Preview
+              Encounter Print Preview
             </h1>
           </div>
           <button className="btn-primary" onClick={handlePrint}>
@@ -191,13 +186,27 @@ export default function PrintPreviewPage() {
         )}
 
         {/* Investigations */}
-        {sections.investigations && (encounter.lab_tests?.length > 0 || encounter.xray_notes) && (
+        {sections.investigations && (encounter.lab_tests?.length > 0 || encounter.xray_notes || Object.keys(encounter.lab_results || {}).length > 0) && (
           <div className="rx-section">
-            <div className="rx-section-title">Investigations Advised</div>
-            {encounter.lab_tests?.length > 0 && (
-              <div className="rx-text">{encounter.lab_tests.join(', ')}</div>
-            )}
-            {encounter.xray_notes && <div className="rx-text">{encounter.xray_notes}</div>}
+            <div className="rx-section-title">Investigations</div>
+            
+            {encounter.lab_results && Object.keys(encounter.lab_results).length > 0 ? (
+              <div className="mb-3">
+                <div className="rx-text font-semibold mb-1">Laboratory Results:</div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                  {Object.entries(encounter.lab_results).map(([test, result]) => (
+                    <div key={test} className="flex justify-between border-b border-(--color-border-subtle) pb-0.5">
+                      <span className="text-(--color-text-secondary) text-[10px]">{test}</span>
+                      <strong className="text-(--color-text-primary) text-[11px]">{result}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : encounter.lab_tests?.length > 0 ? (
+              <div className="rx-text mb-2"><strong>Advised Tests:</strong> {encounter.lab_tests.join(', ')}</div>
+            ) : null}
+
+            {encounter.xray_notes && <div className="rx-text"><strong>Imaging / Radiology:</strong> {encounter.xray_notes}</div>}
           </div>
         )}
 
@@ -212,6 +221,7 @@ export default function PrintPreviewPage() {
                   <th>Medicine</th>
                   <th>Dosage</th>
                   <th>Frequency</th>
+                  <th>Qty/Day</th>
                   <th>Duration</th>
                   <th>Instructions</th>
                 </tr>
@@ -223,6 +233,7 @@ export default function PrintPreviewPage() {
                     <td className="rx-medicine-name">{rx.medicine_name}</td>
                     <td>{rx.dosage}</td>
                     <td>{rx.frequency}</td>
+                    <td>{rx.quantity || '—'}</td>
                     <td>{rx.duration}</td>
                     <td>{rx.instructions || '—'}</td>
                   </tr>

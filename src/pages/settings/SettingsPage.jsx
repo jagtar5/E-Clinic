@@ -7,7 +7,7 @@ const DEFAULT_PRINT_SETTINGS = {
   vitals: true,
   complaints: true,
   diagnosis: true,
-  investigations: false,
+  investigations: true,
   prescription: true,
   notes: false,
   footer: true,

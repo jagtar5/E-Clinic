@@ -16,6 +16,7 @@ export default function SearchableCombobox({
   multi = false,
   className = '',
   disabled = false,
+  allowCustom = false,
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -36,7 +37,7 @@ export default function SearchableCombobox({
   }, []);
 
   // Filter items with fuzzy match
-  const filtered = query
+  let filtered = query
     ? items.filter((item) => {
         const label = item[labelKey] || '';
         const extra = item.code || item.formulation || item.category || '';
@@ -44,6 +45,23 @@ export default function SearchableCombobox({
         return combined.includes(query.toLowerCase());
       })
     : items;
+
+  if (allowCustom && query.trim() !== '') {
+    const exactMatch = items.some(
+      (item) => (item[labelKey] || '').toLowerCase() === query.trim().toLowerCase()
+    );
+    if (!exactMatch) {
+      filtered = [
+        ...filtered,
+        {
+          [valueKey]: `new-${Date.now()}`,
+          [labelKey]: query.trim(),
+          _isNew: true,
+          _label: `+ Add "${query.trim()}"`,
+        },
+      ];
+    }
+  }
 
   // Reset highlight when filtered changes
   useEffect(() => {
@@ -209,7 +227,11 @@ export default function SearchableCombobox({
                 </div>
 
                 {/* Custom render or default */}
-                {renderItem ? (
+                {item._isNew ? (
+                  <div className="flex-1 min-w-0 font-semibold text-(--color-accent-primary)">
+                    {item._label}
+                  </div>
+                ) : renderItem ? (
                   renderItem(item)
                 ) : (
                   <div className="flex-1 min-w-0">

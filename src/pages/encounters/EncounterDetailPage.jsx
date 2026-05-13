@@ -17,6 +17,7 @@ import {
   FileText,
   Printer,
   Edit,
+  Check,
 } from 'lucide-react';
 import '../../styles/print.css';
 
@@ -100,6 +101,61 @@ export default function EncounterDetailPage() {
         </div>
       </div>
 
+      {/* Quick Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="card p-4 bg-indigo-50/50 border-indigo-100 flex flex-col justify-between">
+          <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Prescribed Medicines</div>
+          <div className="space-y-1">
+            {encounter.prescriptions?.length > 0 ? (
+              encounter.prescriptions.map((rx, i) => (
+                <div key={i} className="text-sm font-semibold flex items-center gap-2">
+                  <Pill className="w-3 h-3 text-indigo-400" /> {rx.medicine_name}
+                </div>
+              ))
+            ) : (
+              <span className="text-sm text-slate-400">None</span>
+            )}
+          </div>
+        </div>
+        
+        <div className="card p-4 bg-emerald-50/50 border-emerald-100 flex flex-col justify-between">
+          <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Diagnosis</div>
+          <div className="space-y-1">
+            {encounter.diagnoses?.length > 0 ? (
+              encounter.diagnoses.map((d, i) => (
+                <div key={i} className="text-sm font-semibold flex items-center gap-2">
+                  <Check className="w-3 h-3 text-emerald-400" /> {d.description}
+                </div>
+              ))
+            ) : (
+              <span className="text-sm text-slate-400">No diagnosis recorded</span>
+            )}
+          </div>
+        </div>
+
+        <div className="card p-4 bg-purple-50/50 border-purple-100 flex flex-col justify-between">
+          <div className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-2">Investigations & Results</div>
+          <div className="space-y-1">
+            {Object.keys(encounter.lab_results || {}).length > 0 ? (
+              Object.entries(encounter.lab_results).slice(0, 3).map(([test, res], i) => (
+                <div key={i} className="text-sm font-semibold flex items-center justify-between">
+                  <span>{test}</span>
+                  <span className="text-purple-600">{res}</span>
+                </div>
+              ))
+            ) : encounter.lab_tests?.length > 0 ? (
+              <span className="text-sm text-purple-600 italic">{encounter.lab_tests.length} tests advised</span>
+            ) : (
+              <span className="text-sm text-slate-400">None</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-200 my-2"></div>
+      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest px-1">Detailed Case Record</h3>
+
+
 
 
       {/* Screen Layout */}
@@ -124,6 +180,12 @@ export default function EncounterDetailPage() {
             </div>
           )}
           {encounter.complaints && <p className="text-sm text-(--color-text-secondary) whitespace-pre-wrap">{encounter.complaints}</p>}
+          {encounter.examination_notes && (
+            <div className="mt-4 pt-3 border-t border-amber-100">
+              <span className="text-xs font-semibold text-amber-700">Physical Examination:</span>
+              <p className="text-sm text-(--color-text-secondary) mt-1">{encounter.examination_notes}</p>
+            </div>
+          )}
         </Section>
       )}
 
@@ -216,6 +278,12 @@ export default function EncounterDetailPage() {
               </tbody>
             </table>
           </div>
+        </Section>
+      )}
+
+      {encounter.advice && (
+        <Section title="Advice & Follow-up" icon={ClipboardList} color="#f59e0b">
+          <p className="text-sm text-(--color-text-secondary) whitespace-pre-wrap leading-relaxed">{encounter.advice}</p>
         </Section>
       )}
     </div>

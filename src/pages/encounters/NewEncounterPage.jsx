@@ -54,6 +54,7 @@ const INITIAL_FORM = {
   clinical_notes: '',
   prescriptions: [],
   uploaded_reports: [],
+  advice: '',
 };
 
 export default function NewEncounterPage() {
@@ -147,6 +148,7 @@ export default function NewEncounterPage() {
             instructions: p.instructions,
           })) : [],
           uploaded_reports: existing.uploaded_reports || [],
+          advice: existing.advice || '',
         });
         setPatientQuery(existing.patient_name);
         
@@ -284,6 +286,7 @@ export default function NewEncounterPage() {
       investigation_notes: form.investigation_notes,
       diagnoses: form.selected_diagnoses.map((d) => ({ code: d.code, description: d.description })),
       clinical_notes: form.clinical_notes,
+      advice: form.advice,
       prescriptions: form.prescriptions
         .filter((p) => p.medicine)
         .map((p) => ({
@@ -685,7 +688,7 @@ export default function NewEncounterPage() {
                       </select>
                     </div>
                     <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300"><label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Duration</label><input className="input-inline text-sm px-2 pb-1 pt-0" placeholder="5 days" value={rx.duration} onChange={(e) => updatePrescription(index, 'duration', e.target.value)} /></div>
-                    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300"><label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Qty / Day</label><input type="number" min="1" className="input-inline text-sm px-2 pb-1 pt-0" placeholder="2" value={rx.quantity} onChange={(e) => updatePrescription(index, 'quantity', e.target.value)} /></div>
+                    <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300"><label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Qty</label><input type="text" className="input-inline text-sm px-2 pb-1 pt-0" placeholder="e.g. 2 tabs or 1 tsp" value={rx.quantity} onChange={(e) => updatePrescription(index, 'quantity', e.target.value)} /></div>
                     <div className="bg-white rounded-md border border-transparent hover:border-slate-200 focus-within:border-indigo-300"><label className="label px-2 pt-1 text-[10px] mb-0 text-indigo-500">Notes</label><input className="input-inline text-sm px-2 pb-1 pt-0" placeholder="After meal" value={rx.instructions} onChange={(e) => updatePrescription(index, 'instructions', e.target.value)} /></div>
                   </div>
                 </div>
@@ -693,6 +696,23 @@ export default function NewEncounterPage() {
               <button className="btn-ghost w-full justify-center border border-dashed border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700" onClick={addPrescription}>
                 <Plus className="w-4 h-4" /> Add Medicine
               </button>
+            </div>
+          </Section>
+
+          <Section card={true} className="bg-amber-50/40 border-amber-100/50">
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2 text-amber-700">
+              <ClipboardList className="w-5 h-5 text-amber-500" /> Advice & Follow-up
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="label">Advice (Diet, Lifestyle, Follow-up instructions...)</label>
+                <textarea 
+                  className="textarea h-24" 
+                  placeholder="e.g. Avoid oily food. Review after 1 week."
+                  value={form.advice}
+                  onChange={(e) => updateForm('advice', e.target.value)}
+                />
+              </div>
             </div>
           </Section>
       </div>

@@ -16,7 +16,9 @@ const DEFAULT_PRINT_SETTINGS = {
   complaints: true,
   diagnosis: true,
   investigations: true,
+  history: true,
   prescription: true,
+  advice: true,
   notes: false,
   footer: true,
 };
@@ -29,7 +31,9 @@ export default function PrintPreviewPage() {
     const saved = localStorage.getItem('eclinic_print_settings');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Merge with defaults to ensure new keys (history, advice) are included
+        return { ...DEFAULT_PRINT_SETTINGS, ...parsed };
       } catch (e) {
         return DEFAULT_PRINT_SETTINGS;
       }
@@ -185,6 +189,22 @@ export default function PrintPreviewPage() {
           </div>
         )}
 
+        {/* Medical History & Examination */}
+        {sections.history && (encounter.past_medical || encounter.past_surgical || encounter.family_history || encounter.drug_allergies || encounter.examination_notes) && (
+          <div className="rx-section">
+            <div className="rx-section-title">History & Physical Examination</div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+              {encounter.past_medical && <div className="rx-text"><strong>PMH:</strong> {encounter.past_medical}</div>}
+              {encounter.past_surgical && <div className="rx-text"><strong>PSH:</strong> {encounter.past_surgical}</div>}
+              {encounter.family_history && <div className="rx-text"><strong>FH:</strong> {encounter.family_history}</div>}
+              {encounter.drug_allergies && <div className="rx-text" style={{color: '#ef4444'}}><strong>Allergies:</strong> {encounter.drug_allergies}</div>}
+            </div>
+            {encounter.examination_notes && (
+              <div className="rx-text mt-1"><strong>Examination:</strong> {encounter.examination_notes}</div>
+            )}
+          </div>
+        )}
+
         {/* Investigations */}
         {sections.investigations && (encounter.lab_tests?.length > 0 || encounter.xray_notes || Object.keys(encounter.lab_results || {}).length > 0) && (
           <div className="rx-section">
@@ -240,6 +260,14 @@ export default function PrintPreviewPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Advice & Follow-up */}
+        {sections.advice && encounter.advice && (
+          <div className="rx-section">
+            <div className="rx-section-title">Advice & Follow-up</div>
+            <div className="rx-text whitespace-pre-wrap">{encounter.advice}</div>
           </div>
         )}
 

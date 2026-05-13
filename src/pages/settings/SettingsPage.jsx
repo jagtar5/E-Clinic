@@ -8,7 +8,9 @@ const DEFAULT_PRINT_SETTINGS = {
   complaints: true,
   diagnosis: true,
   investigations: true,
+  history: true,
   prescription: true,
+  advice: true,
   notes: false,
   footer: true,
 };
@@ -21,7 +23,8 @@ export default function SettingsPage() {
     const savedSettings = localStorage.getItem('eclinic_print_settings');
     if (savedSettings) {
       try {
-        setPrintSettings(JSON.parse(savedSettings));
+        const parsed = JSON.parse(savedSettings);
+        setPrintSettings(prev => ({ ...DEFAULT_PRINT_SETTINGS, ...parsed }));
       } catch (e) {
         console.error('Failed to parse print settings', e);
       }
@@ -47,9 +50,11 @@ export default function SettingsPage() {
     { key: 'vitals', label: 'Vitals Strip' },
     { key: 'complaints', label: 'Chief Complaints & Symptoms' },
     { key: 'diagnosis', label: 'Diagnosis (ICD-10)' },
-    { key: 'investigations', label: 'Investigations Advised' },
+    { key: 'history', label: 'Past History & Examination' },
+    { key: 'investigations', label: 'Investigations & Results' },
     { key: 'prescription', label: 'Prescription Table (Rx)' },
-    { key: 'notes', label: 'Clinical Notes' },
+    { key: 'advice', label: 'Advice & Follow-up' },
+    { key: 'notes', label: 'Private Clinical Notes' },
     { key: 'footer', label: 'Footer (Follow-up & Signature)' },
   ];
 

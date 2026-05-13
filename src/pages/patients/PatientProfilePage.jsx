@@ -57,8 +57,15 @@ export default function PatientProfilePage() {
   }
 
   function handleDelete() {
-    db.delete('patients', patientId);
-    navigate('/dashboard/patients');
+    if (window.confirm('Are you sure you want to delete this patient and all their records? This cannot be undone.')) {
+      // Delete all encounters related to this patient
+      const encounters = db.select('encounters', { filters: { patient_id: patientId } }).data;
+      encounters.forEach(enc => db.delete('encounters', enc.id));
+      
+      // Delete the patient
+      db.delete('patients', patientId);
+      navigate('/dashboard/patients');
+    }
   }
 
   function handleEdited() {

@@ -13,85 +13,100 @@ import {
   ArrowUpRight,
   Plus,
   Printer,
+  Trash2,
 } from 'lucide-react';
 
 export default function DashboardHome() {
   const { profile, role } = useAuth();
   const navigate = useNavigate();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleDeleteEncounter = (e, id) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this encounter?')) {
+      db.delete('encounters', id);
+      setRefreshKey(k => k + 1);
+    }
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const timeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "y ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "mo ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "d ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "h ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "m ago";
+    return Math.floor(seconds) + "s ago";
+  };
 
   const greeting = getGreeting();
   const firstName = profile?.full_name?.split(' ')[0] || 'User';
 
-  // Real stats from store
-  const stats = useMemo(() => {
+  const [encounterFilter, setEncounterFilter] = useState('all');
+
+  // Real data from store with refresh support
+  const { stats, recentEncounters, recentPatients } = useMemo(() => {
     const totalPatients = db.count('patients');
-    const totalEncounters = db.count('encounters');
+    const allEncounters = db.select('encounters', { sortBy: 'created_at', sortOrder: 'desc' }).data;
+    const totalEncounters = allEncounters.length;
+    
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-
-    const allEncounters = db.select('encounters', { sortBy: 'created_at', sortOrder: 'desc' }).data;
     const todayEncounters = allEncounters.filter(
       (e) => new Date(e.created_at) >= todayStart
     ).length;
 
-    return [
-      {
-        label: 'Total Patients',
-        value: totalPatients.toLocaleString(),
-        change: `${totalPatients} registered`,
-        icon: Users,
-        color: '#3b82f6',
-      },
-      {
-        label: 'Total Encounters',
-        value: totalEncounters.toLocaleString(),
-        change: `${todayEncounters} today`,
-        icon: Stethoscope,
-        color: '#10b981',
-      },
-      {
-        label: "Today's Visits",
-        value: todayEncounters.toString(),
-        change: 'So far today',
-        icon: CalendarClock,
-        color: '#06b6d4',
-      },
-      {
-        label: 'Revenue (Month)',
-        value: 'Rs. —',
-        change: 'Coming in Phase 6',
-        icon: TrendingUp,
-        color: '#8b5cf6',
-      },
-    ];
-  }, []);
+    const filteredEncs = encounterFilter === 'all' 
+      ? allEncounters 
+      : allEncounters.filter(e => e.status === encounterFilter);
 
-  const [encounterFilter, setEncounterFilter] = useState('all');
-
-  // Recent encounters
-  const recentEncounters = useMemo(() => {
-    let encs = db.select('encounters', {
-      sortBy: 'created_at',
-      sortOrder: 'desc',
-    }).data;
-
-    if (encounterFilter === 'waiting_for_labs') {
-      encs = encs.filter(e => e.status === 'waiting_for_labs');
-    } else if (encounterFilter === 'completed') {
-      encs = encs.filter(e => e.status === 'completed');
-    }
-    
-    return encs.slice(0, 6);
-  }, [encounterFilter]);
-
-  // Recent patients
-  const recentPatients = useMemo(() => {
-    return db.select('patients', {
-      sortBy: 'created_at',
-      sortOrder: 'desc',
-      limit: 5,
-    }).data;
-  }, []);
+    return {
+      stats: [
+        {
+          label: 'Total Patients',
+          value: totalPatients.toLocaleString(),
+          change: `${totalPatients} registered`,
+          icon: Users,
+          color: '#3b82f6',
+        },
+        {
+          label: 'Total Encounters',
+          value: totalEncounters.toLocaleString(),
+          change: `${todayEncounters} today`,
+          icon: Stethoscope,
+          color: '#10b981',
+        },
+        {
+          label: "Today's Visits",
+          value: todayEncounters.toString(),
+          change: 'So far today',
+          icon: CalendarClock,
+          color: '#06b6d4',
+        },
+        {
+          label: 'Revenue (Month)',
+          value: 'Rs. —',
+          change: 'Coming in Phase 6',
+          icon: TrendingUp,
+          color: '#8b5cf6',
+        },
+      ],
+      recentEncounters: filteredEncs.slice(0, 10),
+      recentPatients: db.select('patients', { sortBy: 'created_at', sortOrder: 'desc', limit: 10 }).data
+    };
+  }, [refreshKey, encounterFilter]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -242,16 +257,15 @@ export default function DashboardHome() {
                         )}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <button
-                          className="btn-ghost p-1.5 text-(--color-text-muted) hover:text-(--color-accent-primary)"
-                          title="Fast Print Rx"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/dashboard/prescriptions/${enc.id}`);
-                          }}
-                        >
-                          <Printer className="w-4 h-4" />
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            className="btn-ghost p-1.5 text-(--color-text-muted) hover:text-(--color-accent-danger)"
+                            title="Delete Encounter"
+                            onClick={(e) => handleDeleteEncounter(e, enc.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

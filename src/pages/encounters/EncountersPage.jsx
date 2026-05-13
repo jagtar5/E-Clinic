@@ -10,12 +10,21 @@ import {
   ChevronRight,
   AlertCircle,
   Printer,
+  Trash2,
 } from 'lucide-react';
 
 export default function EncountersPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [refreshKey] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleDeleteEncounter = (e, id) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this encounter?')) {
+      db.delete('encounters', id);
+      setRefreshKey(k => k + 1);
+    }
+  };
 
   const encounters = useMemo(() => {
     const result = db.select('encounters', {
@@ -148,14 +157,11 @@ export default function EncountersPage() {
 
                 <div className="flex items-center gap-3 ml-4 flex-shrink-0">
                   <button 
-                    className="btn-ghost p-2 text-(--color-text-muted) hover:text-(--color-accent-primary) z-10"
-                    title="Fast Print Rx"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/dashboard/prescriptions/${enc.id}`);
-                    }}
+                    className="btn-ghost p-2 text-(--color-text-muted) hover:text-(--color-accent-danger) z-10"
+                    title="Delete Encounter"
+                    onClick={(e) => handleDeleteEncounter(e, enc.id)}
                   >
-                    <Printer className="w-5 h-5" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                   <ChevronRight className="w-5 h-5 text-(--color-text-muted) group-hover:text-(--color-text-primary) transition-colors" />
                 </div>

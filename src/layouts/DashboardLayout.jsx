@@ -126,8 +126,14 @@ export default function DashboardLayout() {
             </div>
           )}
           <button
-            className="ml-auto lg:hidden btn-ghost p-1"
-            onClick={() => setSidebarOpen(false)}
+            className="ml-auto btn-ghost p-1"
+            onClick={() => {
+              if (window.innerWidth >= 1024) {
+                setSidebarCollapsed(true);
+              } else {
+                setSidebarOpen(false);
+              }
+            }}
           >
             <X className="w-5 h-5" />
           </button>
@@ -163,16 +169,16 @@ export default function DashboardLayout() {
           })}
         </nav>
 
-        {/* Collapse toggle (desktop only) */}
+        {/* Collapse toggle (desktop only - optional extra toggle) */}
         <div className="hidden lg:block px-3 py-2">
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="btn-ghost w-full justify-center"
-          >
-            <ChevronRight
-              className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? '' : 'rotate-180'}`}
-            />
-          </button>
+          {!sidebarCollapsed && (
+            <button
+              onClick={() => setSidebarCollapsed(true)}
+              className="btn-ghost w-full justify-center"
+            >
+              <ChevronRight className="w-4 h-4 rotate-180" />
+            </button>
+          )}
         </div>
 
         {/* User Profile */}
@@ -229,8 +235,14 @@ export default function DashboardLayout() {
           className="flex items-center h-16 px-4 lg:px-6 flex-shrink-0 gap-4 z-10 glass-strong relative"
         >
           <button
-            className="btn-ghost p-2 lg:hidden"
-            onClick={() => setSidebarOpen(true)}
+            className="btn-ghost p-2"
+            onClick={() => {
+              if (window.innerWidth >= 1024) {
+                setSidebarCollapsed(!sidebarCollapsed);
+              } else {
+                setSidebarOpen(true);
+              }
+            }}
           >
             <Menu className="w-5 h-5" />
           </button>

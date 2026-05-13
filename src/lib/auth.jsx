@@ -15,7 +15,7 @@ const DEMO_USERS = {
   'doctor@clinic.com': {
     id: 'demo-doctor-001',
     email: 'doctor@clinic.com',
-    full_name: 'Dr. Sara Malik',
+    full_name: 'Dr. Nizamuddin Utmani',
     role: 'doctor',
     avatar_url: null,
   },

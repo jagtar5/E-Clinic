@@ -70,6 +70,8 @@ export default function NewEncounterPage() {
   const [showLabResults, setShowLabResults] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
   const [saved, setSaved] = useState(false);
+  const [savedEncounterId, setSavedEncounterId] = useState(null);
+  const [savedPatientId, setSavedPatientId] = useState(null);
   const [errors, setErrors] = useState({});
 
   const [patientQuery, setPatientQuery] = useState('');
@@ -320,8 +322,9 @@ export default function NewEncounterPage() {
     }
     
     if (!skipRedirect) {
+      setSavedEncounterId(finalEncounterId);
+      setSavedPatientId(finalPatientId);
       setSaved(true);
-      setTimeout(() => navigate(`/dashboard/patients/${finalPatientId}`), 1000);
     }
     return finalEncounterId;
   }
@@ -336,12 +339,27 @@ export default function NewEncounterPage() {
   if (saved) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] animate-scale-in">
-        <div className="card p-8 text-center max-w-sm">
-          <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(16, 185, 129, 0.15)' }}>
-            <Check className="w-8 h-8 text-(--color-accent-success)" />
+        <div className="card p-10 text-center max-w-md shadow-xl border-emerald-100">
+          <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-emerald-50 text-emerald-500">
+            <Check className="w-10 h-10" strokeWidth={3} />
           </div>
-          <h2 className="text-xl font-bold mb-2">Encounter Saved!</h2>
-          <p className="text-(--color-text-secondary)">Redirecting...</p>
+          <h2 className="text-2xl font-bold mb-3 text-slate-800">Encounter Saved!</h2>
+          <p className="text-slate-500 mb-8">The medical record for this visit has been successfully stored.</p>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button 
+              className="btn-primary flex-1 justify-center py-3"
+              onClick={() => navigate(`/dashboard/prescriptions/${savedEncounterId}`)}
+            >
+              <Printer className="w-5 h-5" /> Print Encounter
+            </button>
+            <button 
+              className="btn-secondary flex-1 justify-center py-3"
+              onClick={() => navigate(`/dashboard/patients/${savedPatientId}`)}
+            >
+              Finish & Go Back
+            </button>
+          </div>
         </div>
       </div>
     );
